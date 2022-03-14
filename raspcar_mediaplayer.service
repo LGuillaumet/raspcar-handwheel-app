@@ -1,0 +1,14 @@
+[Unit]
+Description=Raspcar Media Player
+After=bluetooth.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=pi
+ExecStart=/bin/bash /etc/systemd/system/raspcar.mediaplayer
+
+[Install]
+WantedBy=multi-user.target
