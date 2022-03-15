@@ -1,25 +1,35 @@
-import './App.css'
+import './App.scss'
 import AudioPlayer from './component/AudioPlayer/AudioPlayer'
+import { HomeScreen } from './component/HomeScreen/HomeScreen'
 import React, { useState, useEffect } from 'react'
 
 import _ from 'lodash'
 import * as event from './utils/socket.events'
 import * as request from './utils/socket.requests'
 import { io } from 'socket.io-client'
+
+import { Pagination } from 'swiper'
+import { Swiper, SwiperSlide } from 'swiper/react/swiper-react'
+
+
+
+import 'swiper/swiper.min.css'
+import 'swiper/modules/pagination/pagination.min.css'
+
 // const ENDPOINT = 'https://raspcar.loca.lt'
-const ENDPOINT = 'localhost:8080'
+const ENDPOINT = '192.168.1.29:8085'
 let socket
 function App() {
   let timer
   const t = () => {
     timer = setTimeout(() => {
-      setPlayer((p) => ({ ...p, progress: (_.toNumber(p.progress) + 1000)+'' }))
-        if(timer)
-          t()
-      }, 1000)
-    
+      setPlayer((p) => ({ ...p, progress: (_.toNumber(p.progress) + 1000) + '' }))
+      if (timer)
+        t()
+    }, 1000)
+
   }
-  
+
 
   const [player, setPlayer] = useState({
     title: 'Title',
@@ -94,7 +104,24 @@ function App() {
   }, [])
   return (
     <div>
-      <AudioPlayer player={player} emit={onEmit} />
+      <Swiper
+        className='center'
+        slidesPerView={1}
+        loop={true}
+        onSlideChange={() => console.log('slide change')}
+        onSwiper={(swiper) => console.log(swiper)}
+      >
+        <SwiperSlide>
+          <HomeScreen />
+        </SwiperSlide>
+        <SwiperSlide>
+          <AudioPlayer player={player} emit={onEmit} />
+        </SwiperSlide>
+        <SwiperSlide>
+          <HomeScreen />
+        </SwiperSlide>
+        <SwiperSlide>Slide 4</SwiperSlide>
+      </Swiper>
     </div>
   )
 }

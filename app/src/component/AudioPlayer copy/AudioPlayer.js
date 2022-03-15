@@ -1,5 +1,5 @@
 import './AudioPlayer.scss'
-import * as event from './../../utils/socket.requests'
+import * as event from '../../utils/socket.requests'
 import moment from 'moment'
 import _ from 'lodash'
 const AudioPlayer = ({ player, emit }) => {
