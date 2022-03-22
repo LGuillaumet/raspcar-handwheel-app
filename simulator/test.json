@@ -1,0 +1,12 @@
+{
+    "positionLight": true,
+    "cruiseLight": true,
+    "fullheadLight": true,
+    "motor": true, 
+    "battery": true,
+    "handbrake": true,
+    "turnSignalRight": true,
+    "turnSignalLeft": true,
+    "airSpeedFan": 0,
+    "airTemperature": 0
+}
