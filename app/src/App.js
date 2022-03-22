@@ -1,6 +1,7 @@
 import './App.scss'
 import AudioPlayer from './component/AudioPlayer/AudioPlayer'
 import { HomeScreen } from './component/HomeScreen/HomeScreen'
+import { PhoneScreen } from './component/PhoneScreen/PhoneScreen'
 import React, { useState, useEffect } from 'react'
 
 import _ from 'lodash'
@@ -17,7 +18,7 @@ import 'swiper/swiper.min.css'
 import 'swiper/modules/pagination/pagination.min.css'
 
 // const ENDPOINT = 'https://raspcar.loca.lt'
-const ENDPOINT = '192.168.1.29:8085'
+const ENDPOINT = '192.168.144.29:8085'
 let socket
 function App() {
   let timer
@@ -106,10 +107,14 @@ function App() {
     <div>
       <Swiper
         className='center'
-        slidesPerView={1}
+        direction='horizontal'
+        resistanceRatio={2}
+        simulateTouch={false}
+        longSwipes
         loop={true}
         onSlideChange={() => console.log('slide change')}
         onSwiper={(swiper) => console.log(swiper)}
+        slidesPerView={1}
       >
         <SwiperSlide>
           <HomeScreen />
@@ -118,7 +123,7 @@ function App() {
           <AudioPlayer player={player} emit={onEmit} />
         </SwiperSlide>
         <SwiperSlide>
-          <HomeScreen />
+          <PhoneScreen />
         </SwiperSlide>
         <SwiperSlide>Slide 4</SwiperSlide>
       </Swiper>
