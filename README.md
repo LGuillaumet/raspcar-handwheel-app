@@ -54,3 +54,16 @@ VERY IMPORTANT:
 We have been using the same files that were being used by the previous group for the dashboard web app only changing the port in the address, from 3000 to 80.
 Therefor to see the web page of their web app you will need to change the variable back to :
 DASHBOARDPAGE="http://localhost:3000/"
+
+# RUST SIMULATOR
+
+https://doc.rust-lang.org/book/ch01-01-installation.html
+
+curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh
+cargo new simulator
+
+cargo build
+./target/debug/simulator
+
+cd simulator
+RUST_LOG=debug cargo run
