@@ -6,6 +6,7 @@ import sys
 import dbus
 import dbus.service
 import dbus.mainloop.glib
+from gi.repository import GLib
 import threading
 
 import argparse
@@ -40,7 +41,6 @@ def disconnect(sid):
 async def play_request(sid, msg):
     player_iface.Play()
     print("test")
-    print("title", mgr)
     print(msg)
     await sio.emit('play_init',{'title':'Waited For you', 'coverImage':'https://mir-s3-cdn-cf.behance.net/project_modules/1400/0994d841602157.57ac63336b606.jpg','album':'Slow Magic','duration':98000})
     await sio.emit('playing_progress',6000)
@@ -58,6 +58,9 @@ async def next_request(sid, msg):
     player_iface.Next()
     await sio.emit('next')
     print("Next Track")
+    track =  adapter.get('Track')
+    print('Track: ' + str(track))
+    print('Title: ' + track.get('Title')) 
 
 
 @sio.event
@@ -71,6 +74,7 @@ async def volume_change_request(sid, msg):
     #player_iface.Previous()
     print(msg)
     vol = int(msg)
+    print("Volume to set: ", vol)
     if vol not in range(0, 128):
         print('Possible Values: 0-127')
         return True
@@ -90,54 +94,41 @@ async def on_property_changed(interface, changed, invalidated):
     if interface != 'org.bluez.MediaPlayer1':
         return
     for prop, value in changed.items():
-        print(prop, value)
         if prop == 'Status':
             print('Playback Status: {}'.format(value))
         elif prop == 'Track':
             print('Music Info:')
             for key in ('Title', 'Artist', 'Album'):
                 print('   {}: {}'.format(key, value.get(key, '')))
-                await sio.emit('play_init',{'title':'Waited For you', 'coverImage':'https://mir-s3-cdn-cf.behance.net/project_modules/1400/0994d841602157.57ac63336b606.jpg','album':'Slow Magic','duration':98000})
 
-
-
-SERVICE_NAME = "org.bluez"
-ADAPTER_INTERFACE = SERVICE_NAME + ".MediaPlayer1"
-bus = dbus.SystemBus()
-manager = dbus.Interface(bus.get_object(SERVICE_NAME, "/"),
-                    "org.freedesktop.DBus.ObjectManager")
-objects = manager.GetManagedObjects()
 
 if __name__ == '__main__':
-    for path, ifaces in objects.items():
-        adapter = ifaces.get(ADAPTER_INTERFACE)
-        if adapter is None:
-            continue
-        print(path)
-        player = bus.get_object('org.bluez',path)
-        BT_Media_iface = dbus.Interface(player, dbus_interface=ADAPTER_INTERFACE)
-        break
+    dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+    bus = dbus.SystemBus()
+    obj = bus.get_object('org.bluez', "/")
+    mgr = dbus.Interface(obj, 'org.freedesktop.DBus.ObjectManager')
+    player_iface = None
+    transport_prop_iface = None
+    for path, ifaces in mgr.GetManagedObjects().items():
+        if 'org.bluez.MediaPlayer1' in ifaces:
+            player_iface = dbus.Interface(
+                    bus.get_object('org.bluez', path),
+                    'org.bluez.MediaPlayer1')
+        elif 'org.bluez.MediaTransport1' in ifaces:
+            transport_prop_iface = dbus.Interface(
+                    bus.get_object('org.bluez', path),
+                    'org.freedesktop.DBus.Properties')
+    if not player_iface:
+        sys.exit('Error: Media Player not found.')
+    if not transport_prop_iface:
+        sys.exit('Error: DBus.Properties iface not found.')
 
-    while 1:
-        s = input()
-        if s == 'quit': 
-            break
-        if s == 'play':
-            BT_Media_iface.Play()
-        if s == 'pause':
-            BT_Media_iface.Pause()
-        if s == 'stop':
-            BT_Media_iface.Stop()
-        if s == 'next':
-            BT_Media_iface.Next()
-        if s == 'pre':
-            BT_Media_iface.Previous()
-        if s == 'show':
-            track =  adapter.get('Track')
-            print('Track: ' + str(track))
-            print('Title: ' + track.get('Title')) 
-            print('Artist: ' + track.get('Artist'))
-            print('Album: ' + track.get('Album'))
-            print('NumberOfTracks: ' + str(track.get('NumberOfTracks')))
-            print('TrackNumber: ' + str(track.get('TrackNumber')))
-            print('Duration: ' + str(track.get('Duration')))
+    bus.add_signal_receiver(
+            on_property_changed,
+            bus_name='org.bluez',
+            signal_name='PropertiesChanged',
+            dbus_interface='org.freedesktop.DBus.Properties')
+
+    if player_iface:
+        web.run_app(app)
+    
