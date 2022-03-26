@@ -100,8 +100,10 @@ async fn main() -> Result<(), Error> {
         handbrake: false,
         turn_signal_right: false,
         turn_signal_left: false,
+        air_conditioner: false,
         air_speed_fan: 0,
-        air_temperature: 0
+        air_temperature: 0,
+        car_temperature: 0
     }));
 
     // Dictionnary of callback function for event received from buscan
