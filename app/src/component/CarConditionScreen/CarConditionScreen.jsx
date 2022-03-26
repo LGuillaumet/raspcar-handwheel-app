@@ -29,24 +29,26 @@ export const CarConditionScreen = ({ emit }) => {
     >
       <div className="CarCondition-container d-flex position-relative justify-content-center align-items-center flex-column">
         <div className="w-100 mt-auto d-flex flex-row justify-content-evenly">
-          <ImArrowLeft size={25} />
-          <ImArrowRight size={25} />
+          <ImArrowLeft size={25} color="#004700" className="arrow-tick-animation" />
+          <ImArrowRight size={25} color="#004700" className="arrow-tick-animation" />
         </div>
-        <div className="w-75 h-75 d-flex position-relative justify-content-center align-items-center rounded-circle border border-primary">
+        <div className="w-75 h-75 d-flex position-relative justify-content-center align-items-center rounded-circle">
           <div className="w-100 d-flex flex-column align-items-center">
-            <h1 className="">AirPod</h1>
+            <h1 className="text-white">AirPod</h1>
             <div className="w-100 d-flex flex-row justify-content-evenly">
               <ReactSVG
                 src={HeadlightIcon}
                 beforeInjection={(svg) => {
-                  svg.setAttribute('style', 'width: 1.75rem; height: auto;');
+                  svg.classList.add('glow-alert');
+                  svg.setAttribute('style', 'width: 2rem; height: auto;');
                 }}
               />
               <div>
                 <ReactSVG
                   src={HeadlightIcon}
                   beforeInjection={(svg) => {
-                    svg.setAttribute('style', 'width: 1.75rem; height: auto;');
+                    svg.classList.add('glow-warning');
+                    svg.setAttribute('style', 'width: 2rem; height: auto;');
                   }}
                 />
               </div>
@@ -54,7 +56,8 @@ export const CarConditionScreen = ({ emit }) => {
                 <ReactSVG
                   src={HeadlightIcon}
                   beforeInjection={(svg) => {
-                    svg.setAttribute('style', 'width: 1.75rem; height: auto;');
+                    svg.classList.add('glow-used');
+                    svg.setAttribute('style', 'width: 2rem; height: auto;');
                   }}
                 />
               </div>
@@ -67,7 +70,7 @@ export const CarConditionScreen = ({ emit }) => {
               <ReactSVG
                 src={MalfunctionIcon}
                 beforeInjection={(svg) => {
-                  svg.setAttribute('style', 'width: 1.75rem; height: auto;');
+                  svg.setAttribute('style', 'width: 2rem; height: auto;');
                 }}
               />
             </div>
@@ -75,7 +78,7 @@ export const CarConditionScreen = ({ emit }) => {
               <ReactSVG
                 src={BatteryIcon}
                 beforeInjection={(svg) => {
-                  svg.setAttribute('style', 'width: 1.75rem; height: auto;');
+                  svg.setAttribute('style', 'width: 2rem; height: auto;');
                 }}
               />
             </div>
@@ -84,7 +87,7 @@ export const CarConditionScreen = ({ emit }) => {
             <ReactSVG
               src={SystemWarningIcon}
               beforeInjection={(svg) => {
-                svg.setAttribute('style', 'width: 1.75rem; height: auto;');
+                svg.setAttribute('style', 'width: 2rem; height: auto;');
               }}
             />
           </div>

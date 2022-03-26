@@ -8,6 +8,7 @@ import AudioPlayer from './component/AudioPlayer/AudioPlayer';
 import { HomeScreen } from './component/HomeScreen/HomeScreen';
 import { PhoneScreen } from './component/PhoneScreen/PhoneScreen';
 import { CarConditionScreen } from './component/CarConditionScreen/CarConditionScreen';
+import { AirConditionnerScrenn } from './component/AirConditionnerScrenn/AirConditionnerScrenn';
 
 import * as event from './utils/socket.events';
 import * as request from './utils/socket.requests';
@@ -125,6 +126,9 @@ const App = () => {
         </SwiperSlide>
         <SwiperSlide>
           <CarConditionScreen />
+        </SwiperSlide>
+        <SwiperSlide>
+          <AirConditionnerScrenn />
         </SwiperSlide>
       </Swiper>
     </div>

@@ -49,7 +49,6 @@ const AudioPlayer = ({ player, emit }) => {
 
   return (
     <div id="player" className="center">
-      <div className="background-gradient center" />
       <div className="music-cover-ring center" />
       <div
         className="music-cover center"
@@ -91,7 +90,7 @@ const AudioPlayer = ({ player, emit }) => {
           <input type="range" value={player.volume} onChange={volumeChange} />
           <span>{player.volume}</span>
         </div>
-        <div className="title">{player.title}</div>
+        <div className="title text-white">{player.title}</div>
         <div className="album">{player.album}</div>
       </div>
       <div className="music-controls center">

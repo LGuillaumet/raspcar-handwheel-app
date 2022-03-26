@@ -68,7 +68,7 @@ export const PhoneScreen = ({ emit }) => {
         <Button
           className={`${
             isCalling && 'pulse'
-          } rounded-circle bg-transparent shadow-none border-0 p-0 m-0 `}
+          } rounded-circle bg-transparent svg-shadow border-0 p-0 m-0 `}
         >
           <FaPhone
             className="rounded-circle bg-success bg-gradient p-3"
@@ -76,7 +76,7 @@ export const PhoneScreen = ({ emit }) => {
             color="white"
           />
         </Button>
-        <Button className="bg-transparent shadow-none border-0 position-absolute bottom-0 end-0">
+        <Button className="rounded-circle bg-transparent svg-shadow border-0 p-0 m-1 position-absolute bottom-0 end-0">
           <FaPhone
             className="PhoneEnd rounded-circle bg-danger bg-gradient p-3 "
             size={80}

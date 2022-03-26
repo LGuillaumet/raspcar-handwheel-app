@@ -6,6 +6,10 @@
 		transform: rotate(225deg);
 	}
 
+	.svg-shadow {
+		box-shadow: 0px 3px 8px #000, inset 0px 2px 3px #0e0e0e !important;
+	}
+
 	.pulse {
 		animation: pulse-dot 3s cubic-bezier(0.455, 0.03, 0.515, 0.955) -0.4s infinite;
 
