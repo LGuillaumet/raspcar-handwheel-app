@@ -1,0 +1,31 @@
+.AirConditionner-container {
+  width: 90%;
+  height: 90%;
+
+  .theme1 {
+    background: linear-gradient(pink, deeppink);
+  }
+  .theme2 {
+    background: linear-gradient(tomato, red);
+  }
+  .theme3 {
+    background: linear-gradient(yellow, orange);
+  }
+
+
+  .spin {
+    animation-name: spin;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear; 
+    animation-fill-mode: forwards;
+  }
+  
+  @keyframes spin {
+      from {
+          transform:rotate(0deg);
+      }
+      to {
+          transform:rotate(360deg);
+      }
+  }
+}
