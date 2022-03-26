@@ -1,0 +1,48 @@
+.CarCondition-container {
+	width: 90%;
+	height: 90%;
+
+	.custom-icon {
+		width: 1.75rem;
+	}
+	.arrow-tick-animation {
+		animation-name: arrow-tick-animation;
+		animation-duration: 0.8s;
+		animation-iteration-count: infinite;
+		animation-direction: alternate;
+	}
+
+	.glow-alert {
+		g {
+			fill: rgb(196, 5, 5);
+		}
+		filter: drop-shadow(0px 0px 1px rgba(196, 5, 5, 0.466)) drop-shadow(0px 0px 5px rgba(196, 5, 5, 0.753));
+	}
+
+	.glow-warning {
+		g {
+			fill: rgb(255, 174, 0);
+		}
+		filter: drop-shadow(0px 0px 1px rgba(255, 174, 0, 0.781)) drop-shadow(0px 0px 5px rgba(255, 174, 0, 0.829));
+	}
+
+	.glow-used {
+		g {
+			fill: rgb(0, 134, 196);
+		}
+		filter: drop-shadow(0px 0px 1px rgba(0, 134, 196, 0.541)) drop-shadow(0px 0px 5px rgba(0, 134, 196, 0.767));
+	}
+
+	@keyframes arrow-tick-animation {
+		0% {
+			filter: drop-shadow(0px 0px 1px rgba(255, 255, 255, 0)) drop-shadow(0px 0px 2px rgb(0, 179, 9))
+				drop-shadow(0px 0px 3px rgb(0, 179, 9));
+			color: rgb(0, 179, 9);
+		}
+
+		100% {
+			color: #004700;
+			filter: drop-shadow(0px 0px 1px rgba(255, 255, 255, 0));
+		}
+	}
+}

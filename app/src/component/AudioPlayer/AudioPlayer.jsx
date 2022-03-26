@@ -1,12 +1,20 @@
 import './AudioPlayer.scss';
 import moment from 'moment';
 import _ from 'lodash';
+
+import { FaPlay, FaPause } from 'react-icons/fa';
+import { BiSkipPreviousCircle, BiSkipNextCircle } from 'react-icons/bi';
+
+import { Button } from 'reactstrap';
+
 import * as event from '../../utils/socket.requests';
 
 const AudioPlayer = ({ player, emit }) => {
   const progressInDeg = (curr, total) => {
     // entre 0 et 180deg
-    const str = `${Math.round((_.toNumber(`${curr}`) / _.toNumber(`${total}`)) * 180)}deg`;
+    const str = `${Math.round(
+      (_.toNumber(`${curr}`) / _.toNumber(`${total}`)) * 180
+    )}deg`;
     return str;
   };
   const evaluateVolume = (v) => {
@@ -17,10 +25,9 @@ const AudioPlayer = ({ player, emit }) => {
   const addZero = (t) => (t <= 9 ? `0${t}` : t);
   const formatTimer = (t) => {
     const m = moment.duration(t, 'milliseconds');
-    return (
-      `${m.hours() > 0 ? `${addZero(m.hours())}:` : ''
-      }${addZero(m.minutes())}:${addZero(m.seconds())}`
-    );
+    return `${m.hours() > 0 ? `${addZero(m.hours())}:` : ''}${addZero(
+      m.minutes()
+    )}:${addZero(m.seconds())}`;
   };
 
   const play = () => {
@@ -42,7 +49,6 @@ const AudioPlayer = ({ player, emit }) => {
 
   return (
     <div id="player" className="center">
-      <div className="background-gradient center" />
       <div className="music-cover-ring center" />
       <div
         className="music-cover center"
@@ -57,32 +63,52 @@ const AudioPlayer = ({ player, emit }) => {
             style={{
               transform: `rotate(${progressInDeg(
                 player.progress,
-                player.duration,
+                player.duration
               )})`,
             }}
           />
         </div>
         {player.isPlaying ? (
-          <button type="button" className="pause-btn control-btn ripple center" onClick={() => pause()} />
+          <Button
+            className="pause-btn control-btn ripple center border-0"
+            onClick={() => pause()}
+          >
+            <FaPause />
+          </Button>
         ) : (
-          <button type="button" className="play-btn control-btn ripple center" onClick={() => play()} />
+          <Button
+            className="pause-btn control-btn ripple center border-0"
+            onClick={() => pause()}
+          >
+            <FaPlay />
+          </Button>
         )}
       </div>
       <div className="music-info">
         <div className="music-volume-control">
-          <span
-            className={`mdi mdi-volume-${evaluateVolume(player.volume)}`}
-          />
+          <span className={`mdi mdi-volume-${evaluateVolume(player.volume)}`} />
           <input type="range" value={player.volume} onChange={volumeChange} />
           <span>{player.volume}</span>
         </div>
-        <div className="title">{player.title}</div>
+        <div className="title text-white">{player.title}</div>
         <div className="album">{player.album}</div>
       </div>
       <div className="music-controls center">
-        <button type="button" className="music-left-controls" onClick={prev} />
+        <Button
+          type="button"
+          className="music-left-controls d-flex justify-content-center align-items-center border-0 bg-transparent"
+          onClick={prev}
+        >
+          <BiSkipPreviousCircle color="grey" size={40} />
+        </Button>
         <div className="spacer" />
-        <button type="button" className="music-right-controls" onClick={next} />
+        <Button
+          type="button"
+          className="music-right-controls d-flex justify-content-center align-items-center border-0 bg-transparent"
+          onClick={next}
+        >
+          <BiSkipNextCircle color="grey" size={40} />
+        </Button>
       </div>
     </div>
   );
