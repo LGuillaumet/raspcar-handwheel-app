@@ -1,33 +1,119 @@
+import asyncio
 from aiohttp import web
-#from media_control import on_client_control
 import socketio
-import os
-import sys
-import dbus
-import dbus.service
-import dbus.mainloop.glib
+import can
 import threading
-
-import argparse
-import requests
-import bs4
-import json
-import subprocess
 
 sio = socketio.AsyncServer(cors_allowed_origins='*')
 app = web.Application()
 sio.attach(app)
 
-async def index(request):
-    """Serve the client-side application."""
-    with open('index.html') as f:
-        return web.Response(text=f.read(), content_type='text/html')
+# create a bus instance
+# change to vcan_tx for reading
+# add vcan_rx for writing
+readBus = can.ThreadSafeBus(interface='socketcan',
+              channel='can1',
+              receive_own_messages=True)
 
+# writeBus = can.ThreadSafeBus(interface='socketcan',
+#               channel='vcan_rx',
+#               receive_own_messages=True)
+
+# send a message
+#message = can.Message(arbitration_id=123, is_extended_id=True, data=[0x11, 0x22, 0x33])
+#bus.send(message, timeout=0.2)
+
+# FROM BUSCAN
+async def POSITION_LIGHT_EVENT(bytes) :
+    res = bool(bytes)
+    print("POSITION_LIGHT", res)
+    await sio.emit('POSITION_LIGHT', res)
+
+async def CRUISE_LIGHT_EVENT(bytes) :
+    res = bool(bytes)
+    print("CRUISE_LIGHT", res)
+    await sio.emit('CRUISE_LIGHT', res)
+
+async def FULLHEAD_LIGHT_EVENT(bytes) :
+    res = bool(bytes)
+    print("FULLHEAD_LIGHT", res)
+    await sio.emit('FULLHEAD_LIGHT', res)
+
+async def MOTOR_EVENT(bytes) :
+    res = bool(bytes)
+    print("MOTOR", res)
+    await sio.emit('MOTOR', res)
+
+async def BATTERY_EVENT(bytes) :
+    res = bool(bytes)
+    print("BATTERY", res)
+    await sio.emit('BATTERY', res)
+
+async def HANDBRAKE_EVENT(bytes) :
+    res = bool(bytes)
+    print("HANDBRAKE", res)
+    await sio.emit('HANDBRAKE', res)
+
+async def TURN_SIGNAL_RIGHT_EVENT(bytes) :
+    res = bool(bytes)
+    print("TURN_SIGNAL_RIGHT", res)
+    await sio.emit('TURN_SIGNAL_RIGHT', res)
+
+async def TURN_SIGNAL_LEFT_EVENT(bytes) :
+    res = bool(bytes)
+    print("TURN_SIGNAL_LEFT", res)
+    await sio.emit('TURN_SIGNAL_LEFT', res)
+
+async def AIR_CONDITIONER_EVENT(bytes) :
+    res = bool(bytes)
+    print("AIR_CONDITIONER", res)
+    await sio.emit('AIR_CONDITIONER', res)
+
+async def AIR_SPEEDFAN_EVENT(bytes) :
+    res = int(bytes)
+    print("AIR_SPEEDFAN", res)
+    await sio.emit('AIR_SPEEDFAN', res)
+
+async def AIR_TEMPERATURE_EVENT(bytes) :
+    res = int(bytes)
+    print("AIR_TEMPERATURE", res)
+    await sio.emit('AIR_TEMPERATURE', res)
+
+async def CAR_TEMPERATURE_EVENT(bytes) :
+    res = int(bytes)
+    print("CAR_TEMPERATURE", res)
+    await sio.emit('CAR_TEMPERATURE', res)
+
+mapBytesToWSEvent = dict()
+mapBytesToWSEvent[1] = POSITION_LIGHT_EVENT
+mapBytesToWSEvent[2] = CRUISE_LIGHT_EVENT
+mapBytesToWSEvent[3] = FULLHEAD_LIGHT_EVENT
+mapBytesToWSEvent[4] = MOTOR_EVENT
+mapBytesToWSEvent[5] = BATTERY_EVENT
+mapBytesToWSEvent[6] = HANDBRAKE_EVENT
+mapBytesToWSEvent[7] = TURN_SIGNAL_RIGHT_EVENT
+mapBytesToWSEvent[8] = TURN_SIGNAL_LEFT_EVENT
+mapBytesToWSEvent[9] = AIR_CONDITIONER_EVENT
+mapBytesToWSEvent[10] = AIR_SPEEDFAN_EVENT
+mapBytesToWSEvent[11] = AIR_TEMPERATURE_EVENT
+mapBytesToWSEvent[12] = CAR_TEMPERATURE_EVENT
+
+# iterate over received messages from buscan
+async def readMsgFromSocket():
+    print("Starting thread")
+    while True:
+        msg = readBus.recv()
+        if msg is not None:
+            m = { "ID": msg.arbitration_id, "data": msg.data }
+            print(int(msg.arbitration_id))
+            await mapBytesToWSEvent[int(msg.arbitration_id)](msg.data[0])
+
+
+# FROM WEBSOCKET
 @sio.event
 def connect(sid, environ):
     print("connect ", sid)
     
-
 @sio.event
 async def chat_message(sid, data):
     print("message ", data)
@@ -37,107 +123,29 @@ def disconnect(sid):
     print('disconnect ', sid)
 
 @sio.event
-async def play_request(sid, msg):
-    player_iface.Play()
-    print("test")
-    print("title", mgr)
-    print(msg)
-    await sio.emit('play_init',{'title':'Waited For you', 'coverImage':'https://mir-s3-cdn-cf.behance.net/project_modules/1400/0994d841602157.57ac63336b606.jpg','album':'Slow Magic','duration':98000})
-    await sio.emit('playing_progress',6000)
-    print("Playing")
+def air_conditioner(sid, isAirConditionerOn):
+    print('air_conditioner received', isAirConditionerOn)
 
 @sio.event
-async def pause_request(sid, msg):
-    player_iface.Pause()
-    await sio.emit('pause')
-    print("Paused")
-
+def air_speedfan(sid, numberToSet):
+    print('air_speedfan received', numberToSet)
 
 @sio.event
-async def next_request(sid, msg):
-    player_iface.Next()
-    await sio.emit('next')
-    print("Next Track")
+def air_temperature(sid, numberToSet):
+    print('air_temperature received', numberToSet)
 
-
-@sio.event
-async def prev_request(sid, msg):
-    player_iface.Previous()
-    await sio.emit('prev')
-    print("Previous track")
-
-@sio.event
-async def volume_change_request(sid, msg):
-    #player_iface.Previous()
-    print(msg)
-    vol = int(msg)
-    if vol not in range(0, 128):
-        print('Possible Values: 0-127')
-        return True
-    transport_prop_iface.Set(
-            'org.bluez.MediaTransport1',
-            'Volume',
-            dbus.UInt16(vol))
-    await sio.emit('volume_change',msg)
-    print("Volume changed "+msg)
-
-
+async def index(request):
+    """Serve the client-side application."""
+    with open('index.html') as f:
+        return web.Response(text=f.read(), content_type='text/html')
 
 app.router.add_static('/static', 'static')
 app.router.add_get('/', index)
 
-async def on_property_changed(interface, changed, invalidated):
-    if interface != 'org.bluez.MediaPlayer1':
-        return
-    for prop, value in changed.items():
-        print(prop, value)
-        if prop == 'Status':
-            print('Playback Status: {}'.format(value))
-        elif prop == 'Track':
-            print('Music Info:')
-            for key in ('Title', 'Artist', 'Album'):
-                print('   {}: {}'.format(key, value.get(key, '')))
-                await sio.emit('play_init',{'title':'Waited For you', 'coverImage':'https://mir-s3-cdn-cf.behance.net/project_modules/1400/0994d841602157.57ac63336b606.jpg','album':'Slow Magic','duration':98000})
-
-
-
-SERVICE_NAME = "org.bluez"
-ADAPTER_INTERFACE = SERVICE_NAME + ".MediaPlayer1"
-bus = dbus.SystemBus()
-manager = dbus.Interface(bus.get_object(SERVICE_NAME, "/"),
-                    "org.freedesktop.DBus.ObjectManager")
-objects = manager.GetManagedObjects()
-
 if __name__ == '__main__':
-    for path, ifaces in objects.items():
-        adapter = ifaces.get(ADAPTER_INTERFACE)
-        if adapter is None:
-            continue
-        print(path)
-        player = bus.get_object('org.bluez',path)
-        BT_Media_iface = dbus.Interface(player, dbus_interface=ADAPTER_INTERFACE)
-        break
 
-    while 1:
-        s = input()
-        if s == 'quit': 
-            break
-        if s == 'play':
-            BT_Media_iface.Play()
-        if s == 'pause':
-            BT_Media_iface.Pause()
-        if s == 'stop':
-            BT_Media_iface.Stop()
-        if s == 'next':
-            BT_Media_iface.Next()
-        if s == 'pre':
-            BT_Media_iface.Previous()
-        if s == 'show':
-            track =  adapter.get('Track')
-            print('Track: ' + str(track))
-            print('Title: ' + track.get('Title')) 
-            print('Artist: ' + track.get('Artist'))
-            print('Album: ' + track.get('Album'))
-            print('NumberOfTracks: ' + str(track.get('NumberOfTracks')))
-            print('TrackNumber: ' + str(track.get('TrackNumber')))
-            print('Duration: ' + str(track.get('Duration')))
+    print("Starting server")
+    # FUCKING TRICKS BECAUSE PYTHON IS NOT A FUCKING LANGUAGE TO DO THIS THANKS TO OTHERS GROUPS
+    _thread = threading.Thread(target=asyncio.run, args=(readMsgFromSocket(),))
+    _thread.start()
+    web.run_app(app, port=8086)

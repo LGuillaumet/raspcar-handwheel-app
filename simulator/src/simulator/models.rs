@@ -6,15 +6,17 @@ const BATTERY : u32 = 0x5;
 const HANDBRAKE : u32 = 0x6;
 const TURN_SIGNAL_RIGHT : u32 = 0x7;
 const TURN_SIGNAL_LEFT : u32 = 0x8;
-const AIR_SPEEDFAN : u32 = 0x9;
-const AIR_TEMPERATURE : u32 = 0x10;
+const AIR_CONDITIONER : u32 = 0x9;
+const AIR_SPEEDFAN : u32 = 0xA;
+const AIR_TEMPERATURE : u32 = 0xB;
+const CAR_TEMPERATURE : u32 = 0xC;
 
 pub struct ValueTypeChange {
     pub propertie_type: u32,
     pub value: u8
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Copy, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct CarData {
     pub position_light: bool,
@@ -25,8 +27,10 @@ pub struct CarData {
     pub handbrake: bool,
     pub turn_signal_right: bool,
     pub turn_signal_left: bool,
+    pub air_conditioner: bool,
     pub air_speed_fan: i8,
-    pub air_temperature: i8
+    pub air_temperature: i8,
+    pub car_temperature: i8
 }
 
 impl CarData {
@@ -73,6 +77,11 @@ impl CarData {
         if self.turn_signal_left != other.turn_signal_left {
             self.turn_signal_left = other.turn_signal_left;
             vec.push(ValueTypeChange { propertie_type: TURN_SIGNAL_LEFT, value: self.turn_signal_left as u8 })
+        }
+        
+        if self.air_conditioner != other.air_conditioner {
+            self.air_conditioner = other.air_conditioner;
+            vec.push(ValueTypeChange { propertie_type: AIR_CONDITIONER, value: self.air_conditioner as u8 })
         } 
 
         if self.air_speed_fan != other.air_speed_fan {
@@ -83,6 +92,11 @@ impl CarData {
         if self.air_temperature != other.air_temperature {
             self.air_temperature = other.air_temperature;
             vec.push(ValueTypeChange { propertie_type: AIR_TEMPERATURE, value: self.air_temperature as u8 })
+        }
+        
+        if self.car_temperature != other.car_temperature {
+            self.car_temperature = other.car_temperature;
+            vec.push(ValueTypeChange { propertie_type: CAR_TEMPERATURE, value: self.car_temperature as u8 })
         } 
 
         return vec;
