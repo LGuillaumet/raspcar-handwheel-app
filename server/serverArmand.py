@@ -1,4 +1,5 @@
 import asyncio
+import json
 from aiohttp import web
 import socketio
 import can
@@ -8,80 +9,106 @@ sio = socketio.AsyncServer(cors_allowed_origins='*')
 app = web.Application()
 sio.attach(app)
 
-# create a bus instance
-# change to vcan_tx for reading
-# add vcan_rx for writing
+# create a bus instance for reading and writing
 readBus = can.ThreadSafeBus(interface='socketcan',
-              channel='can1',
+              channel='vcan_tx',
               receive_own_messages=True)
 
-# writeBus = can.ThreadSafeBus(interface='socketcan',
-#               channel='vcan_rx',
-#               receive_own_messages=True)
+writeBus = can.ThreadSafeBus(interface='socketcan',
+              channel='vcan_rx',
+              receive_own_messages=True)
 
-# send a message
-#message = can.Message(arbitration_id=123, is_extended_id=True, data=[0x11, 0x22, 0x33])
-#bus.send(message, timeout=0.2)
+class CarState:
+    position_light = False,
+    cruise_light = False,
+    fullhead_light = False,
+    motor = False, 
+    battery = False,
+    handbrake = False,
+    turn_signal_right = False,
+    turn_signal_left = False,
+    air_conditioner = False,
+    air_speed_fan = 0,
+    air_temperature = 20,
+    car_temperature = 0
+
+    def toJSON(self):
+        return json.dumps(self, default=lambda o: o.__dict__, 
+            sort_keys=True, indent=4)
+
+carState = CarState()
 
 # FROM BUSCAN
 async def POSITION_LIGHT_EVENT(bytes) :
     res = bool(bytes)
     print("POSITION_LIGHT", res)
+    carState.position_light = res
     await sio.emit('POSITION_LIGHT', res)
 
 async def CRUISE_LIGHT_EVENT(bytes) :
     res = bool(bytes)
     print("CRUISE_LIGHT", res)
+    carState.cruise_light = res
     await sio.emit('CRUISE_LIGHT', res)
 
 async def FULLHEAD_LIGHT_EVENT(bytes) :
     res = bool(bytes)
     print("FULLHEAD_LIGHT", res)
+    carState.fullhead_light = res
     await sio.emit('FULLHEAD_LIGHT', res)
 
 async def MOTOR_EVENT(bytes) :
     res = bool(bytes)
     print("MOTOR", res)
+    carState.motor = res
     await sio.emit('MOTOR', res)
 
 async def BATTERY_EVENT(bytes) :
     res = bool(bytes)
     print("BATTERY", res)
+    carState.battery = res
     await sio.emit('BATTERY', res)
 
 async def HANDBRAKE_EVENT(bytes) :
     res = bool(bytes)
     print("HANDBRAKE", res)
+    carState.handbrake = res
     await sio.emit('HANDBRAKE', res)
 
 async def TURN_SIGNAL_RIGHT_EVENT(bytes) :
     res = bool(bytes)
     print("TURN_SIGNAL_RIGHT", res)
+    carState.turn_signal_right = res
     await sio.emit('TURN_SIGNAL_RIGHT', res)
 
 async def TURN_SIGNAL_LEFT_EVENT(bytes) :
     res = bool(bytes)
     print("TURN_SIGNAL_LEFT", res)
+    carState.turn_signal_left = res
     await sio.emit('TURN_SIGNAL_LEFT', res)
 
 async def AIR_CONDITIONER_EVENT(bytes) :
     res = bool(bytes)
     print("AIR_CONDITIONER", res)
+    carState.air_conditioner = res
     await sio.emit('AIR_CONDITIONER', res)
 
 async def AIR_SPEEDFAN_EVENT(bytes) :
     res = int(bytes)
     print("AIR_SPEEDFAN", res)
+    carState.air_speed_fan = res
     await sio.emit('AIR_SPEEDFAN', res)
 
 async def AIR_TEMPERATURE_EVENT(bytes) :
     res = int(bytes)
     print("AIR_TEMPERATURE", res)
+    carState.air_temperature = res
     await sio.emit('AIR_TEMPERATURE', res)
 
 async def CAR_TEMPERATURE_EVENT(bytes) :
     res = int(bytes)
     print("CAR_TEMPERATURE", res)
+    carState.car_temperature = res
     await sio.emit('CAR_TEMPERATURE', res)
 
 mapBytesToWSEvent = dict()
@@ -111,12 +138,9 @@ async def readMsgFromSocket():
 
 # FROM WEBSOCKET
 @sio.event
-def connect(sid, environ):
+async def connect(sid, environ):
+    await sio.emit("initial_state", carState.toJSON()) #a tester
     print("connect ", sid)
-    
-@sio.event
-async def chat_message(sid, data):
-    print("message ", data)
 
 @sio.event
 def disconnect(sid):
@@ -124,14 +148,20 @@ def disconnect(sid):
 
 @sio.event
 def air_conditioner(sid, isAirConditionerOn):
+    message = can.Message(arbitration_id=9, is_extended_id=True, data=bytearray([int(isAirConditionerOn)]))
+    writeBus.send(message, timeout=0.2)
     print('air_conditioner received', isAirConditionerOn)
 
 @sio.event
 def air_speedfan(sid, numberToSet):
+    message = can.Message(arbitration_id=11, is_extended_id=True, data=bytearray([int(numberToSet)]))
+    writeBus.send(message, timeout=0.2)
     print('air_speedfan received', numberToSet)
 
 @sio.event
 def air_temperature(sid, numberToSet):
+    message = can.Message(arbitration_id=10, is_extended_id=True, data=bytearray([int(numberToSet)]))
+    writeBus.send(message, timeout=0.2)
     print('air_temperature received', numberToSet)
 
 async def index(request):

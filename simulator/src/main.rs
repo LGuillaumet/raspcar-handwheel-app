@@ -16,9 +16,10 @@ use std::sync::{Arc, Mutex};
 use simple_websockets::{Event, Responder};
 
 type CarDataMutex = Arc<Mutex<CarData>>;
-type CanReceiverFn = fn(CarDataMutex, &[u8], HashMap<u64, Responder>) -> ();
+type ClientsMutex = Arc<Mutex<HashMap<u64, Responder>>>;
+type CanReceiverFn = fn(CarDataMutex, &[u8], ClientsMutex) -> ();
 
-async fn handler_websocket(sender: tokio::sync::mpsc::Sender<CarData>, mut map: HashMap<u64, Responder>){
+async fn handler_websocket(sender: tokio::sync::mpsc::Sender<CarData>, mut map: ClientsMutex){
 
     let tx = sender.clone();
     let event_hub = simple_websockets::launch(8080).expect("Failed to listen on port 8080 \u{1F914}");
@@ -27,11 +28,13 @@ async fn handler_websocket(sender: tokio::sync::mpsc::Sender<CarData>, mut map: 
         match event_hub.poll_event() {
             Event::Connect(client_id, responder) => {
                 info!("A client connected with id #{} \u{1F60E}", client_id);
-                map.insert(client_id, responder);
+                let mut c = data_lock_mutex.lock().unwrap();
+                c.insert(client_id, responder);
             },
             Event::Disconnect(client_id) => {
                 info!("Client #{} disconnected \u{1F622}", client_id);
-                map.remove(&client_id);
+                let mut c = data_lock_mutex.lock().unwrap();
+                c.remove(&client_id);
             },
             Event::Message(client_id, message) => {
                 if let simple_websockets::Message::Text(data) = message {
@@ -45,12 +48,18 @@ async fn handler_websocket(sender: tokio::sync::mpsc::Sender<CarData>, mut map: 
     }
 }
 
-async fn reader_can(mut reader: CANSocket, datamutex: CarDataMutex, dict: HashMap<u32, CanReceiverFn>, map: HashMap<u64, Responder>) -> Result<(), Error> {
+async fn reader_can(mut reader: CANSocket, datamutex: CarDataMutex, dict: HashMap<u32, CanReceiverFn>, map: ClientsMutex) -> Result<(), Error> {
 
     info!("Start Reader virtual bus can.");
 
     while let Some(Ok(frame)) = reader.next().await {
+
         info!("Event bus can : ID {} - DATA {:X?}", frame.id(), frame.data());
+
+        if frame.data().len() == 0 {
+            continue;
+        }
+
         let result: Option<&CanReceiverFn> = dict.get(&frame.id());
         match result {
             Some(x) => x(datamutex.clone(), frame.data(), map.clone()),
@@ -63,24 +72,32 @@ async fn reader_can(mut reader: CANSocket, datamutex: CarDataMutex, dict: HashMa
     Ok(())
 }
 
-fn handler_can_air_speed_fan_rw(datamutex: CarDataMutex, data: &[u8], map: HashMap<u64, Responder>) {
-    let car = datamutex.lock().unwrap();
-    let mut inner: CarData = *car;
-    inner.air_speed_fan = data[0];
-    let toto = serde_json::to_string(&inner).expect("cannot serialize value");
+fn ser_and_send(car: &CarData, map: ClientsMutex){
+    let toto = serde_json::to_string(&car).expect("cannot serialize value");
     for (_, value) in map {
         value.send(simple_websockets::Message::Text(toto.clone()));
     }
 }
 
-fn handler_can_air_temperature_rw(datamutex: CarDataMutex, data: &[u8], map: HashMap<u64, Responder>) {
+fn handler_can_air_conditioner_rw(datamutex: CarDataMutex, data: &[u8], map: ClientsMutex) {
+    let car = datamutex.lock().unwrap();
+    let mut inner: CarData = *car;
+    inner.air_conditioner = data[0] != 0;
+    ser_and_send(&inner, map);
+}
+
+fn handler_can_air_speed_fan_rw(datamutex: CarDataMutex, data: &[u8], map: ClientsMutex) {
+    let car = datamutex.lock().unwrap();
+    let mut inner: CarData = *car;
+    inner.air_speed_fan = data[0];
+    ser_and_send(&inner, map);
+}
+
+fn handler_can_air_temperature_rw(datamutex: CarDataMutex, data: &[u8], map: ClientsMutex) {
     let car = datamutex.lock().unwrap();
     let mut inner: CarData = *car;
     inner.air_temperature = data[0];
-    let toto = serde_json::to_string(&inner).expect("cannot serialize value");
-    for (_, value) in map {
-        value.send(simple_websockets::Message::Text(toto.clone()));
-    }
+    ser_and_send(&inner, map);
 }
 
 #[tokio::main]
@@ -108,8 +125,8 @@ async fn main() -> Result<(), Error> {
 
     // Dictionnary of callback function for event received from buscan
     let mut dict: HashMap<u32, CanReceiverFn> = HashMap::new();
-    let clients: HashMap<u64, Responder> = HashMap::new();
-    dict.insert(9, handler_can_air_conditioner);
+    let mut clients: HashMap<u64, Responder> = Arc::new(Mutex::new(HashMap::new());
+    dict.insert(9, handler_can_air_conditioner_rw);
     dict.insert(10, handler_can_air_speed_fan_rw);
     dict.insert(11, handler_can_air_temperature_rw);
 

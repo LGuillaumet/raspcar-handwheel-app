@@ -28,9 +28,9 @@ pub struct CarData {
     pub turn_signal_right: bool,
     pub turn_signal_left: bool,
     pub air_conditioner: bool,
-    pub air_speed_fan: i8,
-    pub air_temperature: i8,
-    pub car_temperature: i8
+    pub air_speed_fan: u8,
+    pub air_temperature: u8,
+    pub car_temperature: u8
 }
 
 impl CarData {

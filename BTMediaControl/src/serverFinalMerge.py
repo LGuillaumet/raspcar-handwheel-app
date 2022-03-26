@@ -1,3 +1,5 @@
+import asyncio
+import threading
 from aiohttp import web
 import socketio
 from mediaPlayerBT import MediaPlayer
@@ -8,6 +10,8 @@ from gi.repository import GLib
 import logging
 import dbus
 import dbus.mainloop.glib
+
+import can
 
 
 sio = socketio.AsyncServer(cors_allowed_origins='*')
@@ -125,33 +129,32 @@ def hangup_call(path):
 app.router.add_static('/static', 'static')
 app.router.add_get('/', index)
 
-if __name__ == '__main__':
-    global vcmanager
+if __name__ == "__main__":
+	
+	global vcmanager
 
-    dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+	dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 
 	bus = dbus.SystemBus()
-
-	manager = dbus.Interface(bus.get_object('org.ofono', '/'),
-							'org.ofono.Manager')
-
+	manager = dbus.Interface(bus.get_object('org.ofono', '/'), 'org.ofono.Manager')
 	modems = manager.GetModems()
 	modem = modems[0][0]
 
 	print("Using modem %s" % modem)
 
-	vcmanager = dbus.Interface(bus.get_object('org.ofono', modem),
-						'org.ofono.VoiceCallManager')
-
+	vcmanager = dbus.Interface(bus.get_object('org.ofono', modem), 'org.ofono.VoiceCallManager')
 	vcmanager.connect_to_signal("CallAdded", voicecalls_call_added)
 	vcmanager.connect_to_signal("CallRemoved", voicecalls_call_removed)
 
-    player = MediaPlayer()
-    print("Starting server")
-
-    if player:
-        web.run_app(app, port=8085)
-
 	mainloop = GLib.MainLoop()
+	#mainloop.run()
+	player = MediaPlayer()
+	print("Starting server")
+
+	if player:
+		_thread = threading.Thread(target=asyncio.run, args=(web.run_app(app, port=8085),))
+		_thread.start()
+
 	mainloop.run()
 
+	
