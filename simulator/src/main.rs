@@ -109,8 +109,9 @@ async fn main() -> Result<(), Error> {
     // Dictionnary of callback function for event received from buscan
     let mut dict: HashMap<u32, CanReceiverFn> = HashMap::new();
     let clients: HashMap<u64, Responder> = HashMap::new();
-    dict.insert(9, handler_can_air_speed_fan_rw);
-    dict.insert(10, handler_can_air_temperature_rw);
+    dict.insert(9, handler_can_air_conditioner);
+    dict.insert(10, handler_can_air_speed_fan_rw);
+    dict.insert(11, handler_can_air_temperature_rw);
 
     // Setup buscan
     let socket_rx = CANSocket::open("vcan_rx")?;
