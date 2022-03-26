@@ -67,3 +67,5 @@ cargo build
 
 cd simulator
 RUST_LOG=debug cargo run
+
+fuser -k 8086/tcp
