@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, retry } from 'rxjs';
 import { CarData } from './simulator.types';
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 import { environment } from 'src/environments/environment';
@@ -36,11 +36,13 @@ export class SimulatorService {
 
   constructor() {
     this.socket$ = webSocket(WS_URL);
-    this.socket$.subscribe({
-      next: this.onMessage.bind(this),
-      error: this.onError.bind(this),
-      complete: this.onComplete.bind(this)
-    })
+    this.socket$
+      .pipe(retry({count: 10, delay: 10000, resetOnSuccess: true}))
+      .subscribe({
+        next: this.onMessage.bind(this),
+        error: this.onError.bind(this),
+        complete: this.onComplete.bind(this)
+      })
   }
 
   public setCarData(data: CarData): void {
