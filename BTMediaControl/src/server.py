@@ -37,6 +37,7 @@ async def play_request(sid, msg):
 @sio.event
 async def pause_request(sid, msg):
     player.Pause()
+    print("pause_request")
     await sio.emit('pause')
     print("Paused")
 

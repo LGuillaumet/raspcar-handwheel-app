@@ -19,7 +19,7 @@ type CarDataMutex = Arc<Mutex<CarData>>;
 type ClientsMutex = Arc<Mutex<HashMap<u64, Responder>>>;
 type CanReceiverFn = fn(CarDataMutex, &[u8], ClientsMutex) -> ();
 
-async fn handler_websocket(sender: tokio::sync::mpsc::Sender<CarData>, mut map: ClientsMutex){
+async fn handler_websocket(sender: tokio::sync::mpsc::Sender<CarData>, map: ClientsMutex){
 
     let tx = sender.clone();
     let event_hub = simple_websockets::launch(8080).expect("Failed to listen on port 8080 \u{1F914}");
@@ -28,12 +28,12 @@ async fn handler_websocket(sender: tokio::sync::mpsc::Sender<CarData>, mut map: 
         match event_hub.poll_event() {
             Event::Connect(client_id, responder) => {
                 info!("A client connected with id #{} \u{1F60E}", client_id);
-                let mut c = data_lock_mutex.lock().unwrap();
+                let mut c = map.lock().unwrap();
                 c.insert(client_id, responder);
             },
             Event::Disconnect(client_id) => {
                 info!("Client #{} disconnected \u{1F622}", client_id);
-                let mut c = data_lock_mutex.lock().unwrap();
+                let mut c = map.lock().unwrap();
                 c.remove(&client_id);
             },
             Event::Message(client_id, message) => {
@@ -74,7 +74,8 @@ async fn reader_can(mut reader: CANSocket, datamutex: CarDataMutex, dict: HashMa
 
 fn ser_and_send(car: &CarData, map: ClientsMutex){
     let toto = serde_json::to_string(&car).expect("cannot serialize value");
-    for (_, value) in map {
+    let c = map.lock().unwrap();
+    for (_, value) in c.iter() {
         value.send(simple_websockets::Message::Text(toto.clone()));
     }
 }
@@ -125,7 +126,7 @@ async fn main() -> Result<(), Error> {
 
     // Dictionnary of callback function for event received from buscan
     let mut dict: HashMap<u32, CanReceiverFn> = HashMap::new();
-    let mut clients: HashMap<u64, Responder> = Arc::new(Mutex::new(HashMap::new());
+    let clients: ClientsMutex = Arc::new(Mutex::new(HashMap::new()));
     dict.insert(9, handler_can_air_conditioner_rw);
     dict.insert(10, handler_can_air_speed_fan_rw);
     dict.insert(11, handler_can_air_temperature_rw);

@@ -19,22 +19,23 @@ writeBus = can.ThreadSafeBus(interface='socketcan',
               receive_own_messages=True)
 
 class CarState:
-    position_light = False,
-    cruise_light = False,
-    fullhead_light = False,
-    motor = False, 
-    battery = False,
-    handbrake = False,
-    turn_signal_right = False,
-    turn_signal_left = False,
-    air_conditioner = False,
-    air_speed_fan = 0,
-    air_temperature = 20,
-    car_temperature = 0
+
+    def __init__(self):
+        self.position_light = False,
+        self.cruise_light = False,
+        self.fullhead_light = False,
+        self.motor = False, 
+        self.battery = False,
+        self.handbrake = False,
+        self.turn_signal_right = False,
+        self.turn_signal_left = False,
+        self.air_conditioner = False,
+        self.air_speed_fan = 0,
+        self.air_temperature = 20,
+        self.car_temperature = 20
 
     def toJSON(self):
-        return json.dumps(self, default=lambda o: o.__dict__, 
-            sort_keys=True, indent=4)
+        return json.dumps(self, default=lambda o: o.__dict__, indent=4)
 
 carState = CarState()
 
@@ -139,6 +140,7 @@ async def readMsgFromSocket():
 # FROM WEBSOCKET
 @sio.event
 async def connect(sid, environ):
+    print(carState.toJSON())
     await sio.emit("initial_state", carState.toJSON()) #a tester
     print("connect ", sid)
 
@@ -163,6 +165,13 @@ def air_temperature(sid, numberToSet):
     message = can.Message(arbitration_id=10, is_extended_id=True, data=bytearray([int(numberToSet)]))
     writeBus.send(message, timeout=0.2)
     print('air_temperature received', numberToSet)
+
+@sio.event
+async def get_car_state(sid):
+    # message = can.Message(arbitration_id=10, is_extended_id=True, data=bytearray([int(numberToSet)]))
+    # writeBus.send(message, timeout=0.2)
+    await sio.emit("get_car_state", carState.toJSON())
+    print('get_car_state received', carState.toJSON())
 
 async def index(request):
     """Serve the client-side application."""
