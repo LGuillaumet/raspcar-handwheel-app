@@ -2,30 +2,44 @@ import { useState, useEffect } from 'react';
 import Slider from 'rc-slider';
 import Switch from 'react-switch';
 
-import './AirConditionnerScrenn.scss';
 import 'rc-slider/assets/index.css';
 
 import { FaFan } from 'react-icons/fa';
 
-export const AirConditionnerScrenn = ({ emit }) => {
-  const [carTemp, setCarTemp] = useState(20);
-  const [valueTemp, setValueTemp] = useState(10);
-  const [valueFan, setValueFan] = useState(50);
-  const [valueEdit, setValueEdit] = useState(valueFan);
-  const [valueSwitch, setValueSwitch] = useState(false);
+import { useSocketCarInformations } from '../../SocketProvider';
+
+import './AirConditionerScreen.scss';
+
+export const AirConditionerScreen = () => {
+  const { carTemperature, onEmit } = useSocketCarInformations();
+
+  const [valueTemp, setValueTemp] = useState(carTemperature.airTemperature);
+  const [valueTempEdit, setValueTempEdit] = useState(valueTemp);
+  const [valueFan, setValueFan] = useState(carTemperature.airSpeedFan);
+  const [valueFanEdit, setValueFanEdit] = useState(valueFan);
+  const [valueSwitch, setValueSwitch] = useState(carTemperature.airConditioner);
 
   const handleToggleSwitch = () => {
     setValueSwitch(!valueSwitch);
+    onEmit('air_conditioner', !valueSwitch);
   };
 
   useEffect(() => {
     if (valueSwitch) {
-      setValueEdit(valueFan);
+      setValueFanEdit(valueFan);
     } else {
-      setValueEdit(0);
+      setValueFanEdit(0);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [valueSwitch]);
+
+  useEffect(() => {
+    onEmit('air_speedfan', valueFanEdit);
+  }, [onEmit, valueFanEdit]);
+
+  useEffect(() => {
+    onEmit('air_temperature', valueTempEdit);
+  }, [onEmit, valueTempEdit]);
 
   const marksTemp = {
     10: <strong>10°C</strong>,
@@ -52,7 +66,7 @@ export const AirConditionnerScrenn = ({ emit }) => {
       id="player"
       className="center d-flex justify-content-center align-items-center"
     >
-      <div className="AirConditionner-container d-flex position-relative justify-content-center align-items-center flex-column">
+      <div className="AirConditioner-container d-flex position-relative justify-content-center align-items-center flex-column">
         <Switch onChange={handleToggleSwitch} checked={valueSwitch} />
         <div className="w-75 h-75 d-flex position-relative justify-content-center align-items-center rounded-circle">
           <div className="h-100 w-100 d-flex flex-row align-items-center justify-content-between">
@@ -65,6 +79,7 @@ export const AirConditionnerScrenn = ({ emit }) => {
                 step={1}
                 value={valueTemp}
                 onChange={(val) => setValueTemp(val)}
+                onAfterChange={(val) => setValueTempEdit(val)}
               />
             </div>
             <div id="center" className="d-flex flex-column align-items-center">
@@ -76,15 +91,15 @@ export const AirConditionnerScrenn = ({ emit }) => {
                 </p>
               </div>
               <h1 id="center" className="display-1 text-white bold p-0 m-0">
-                {carTemp}°C
+                {carTemperature.carTemperature || 20}°C
               </h1>
               <FaFan
                 color="white"
                 size={100}
                 className="spin"
                 style={
-                  valueEdit > 0 && {
-                    animationDuration: `${100 / valueEdit}s`,
+                  valueFanEdit > 0 && {
+                    animationDuration: `${100 / valueFanEdit}s`,
                   }
                 }
               />
@@ -98,7 +113,7 @@ export const AirConditionnerScrenn = ({ emit }) => {
                 step={1}
                 value={valueFan}
                 onChange={(val) => setValueFan(val)}
-                onAfterChange={(val) => valueSwitch && setValueEdit(val)}
+                onAfterChange={(val) => valueSwitch && setValueFanEdit(val)}
               />
             </div>
           </div>

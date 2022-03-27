@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Button } from 'reactstrap';
 import { FaPhone } from 'react-icons/fa';
 import {
   IoVolumeMuteSharp,
@@ -6,21 +7,20 @@ import {
   IoMicOffSharp,
   IoMicSharp,
 } from 'react-icons/io5';
-import { Button } from 'reactstrap';
 
-import * as event from '../../utils/socket.requests';
+import { useSocketCarInformations } from '../../SocketProvider';
+
 import './PhoneScreen.scss';
 
-export const PhoneScreen = ({ emit }) => {
+export const PhoneScreen = () => {
   const [isMicMuted, setIsMicMuted] = useState(false);
   const [isVolMuted, setIsVolMuted] = useState(false);
-  const [isCalling, setIsCalling] = useState(false);
+  const { phone, onEmit } = useSocketCarInformations();
 
-  const answerCall = () => {
-    emit(event.ANSWER_CALL_REQUEST);
-  };
-  const endCall = () => {
-    emit(event.END_CALL_REQUEST);
+  const handleAnswerCall = () => {
+    if (phone.isCalling) {
+      onEmit('answer_call_request', phone.path);
+    }
   };
 
   return (
@@ -66,8 +66,9 @@ export const PhoneScreen = ({ emit }) => {
           )}
         </Button>
         <Button
+          onClick={() => handleAnswerCall()}
           className={`${
-            isCalling && 'pulse'
+            phone.isCalling && 'pulse'
           } rounded-circle bg-transparent svg-shadow border-0 p-0 m-0 `}
         >
           <FaPhone

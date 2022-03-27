@@ -12,6 +12,18 @@
 		animation-direction: alternate;
 	}
 
+	.arrow-tick-animation-warning {
+		animation-name: arrow-tick-animation;
+		animation-duration: 1s;
+		animation-iteration-count: infinite;
+		animation-direction: alternate;
+	}
+
+	svg g {
+		fill: rgb(95, 95, 95);
+	}
+	
+
 	.glow-alert {
 		g {
 			fill: rgb(196, 5, 5);
@@ -26,7 +38,14 @@
 		filter: drop-shadow(0px 0px 1px rgba(255, 174, 0, 0.781)) drop-shadow(0px 0px 5px rgba(255, 174, 0, 0.829));
 	}
 
-	.glow-used {
+	.glow-used-light {
+		g {
+			fill: rgb(57, 201, 0);
+		}
+		filter: drop-shadow(0px 0px 1px rgba(57, 201, 0, 0.534)) drop-shadow(0px 0px 5px rgba(57, 201, 0, 0.767));
+	}
+
+	.glow-used-full {
 		g {
 			fill: rgb(0, 134, 196);
 		}

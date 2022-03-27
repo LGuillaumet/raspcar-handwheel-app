@@ -1,15 +1,18 @@
-import './AudioPlayer.scss';
 import moment from 'moment';
 import _ from 'lodash';
+import { Button } from 'reactstrap';
 
 import { FaPlay, FaPause } from 'react-icons/fa';
 import { BiSkipPreviousCircle, BiSkipNextCircle } from 'react-icons/bi';
 
-import { Button } from 'reactstrap';
+import { useSocketCarInformations } from '../../SocketProvider';
 
 import * as event from '../../utils/socket.requests';
+import './AudioPlayer.scss';
 
-const AudioPlayer = ({ player, emit }) => {
+const AudioPlayer = () => {
+  const { player, onEmit } = useSocketCarInformations();
+
   const progressInDeg = (curr, total) => {
     // entre 0 et 180deg
     const str = `${Math.round(
@@ -31,20 +34,20 @@ const AudioPlayer = ({ player, emit }) => {
   };
 
   const play = () => {
-    emit(event.PLAY_REQUEST);
+    onEmit(event.PLAY_REQUEST);
   };
   const pause = () => {
-    emit(event.PAUSE_REQUEST);
+    onEmit(event.PAUSE_REQUEST);
   };
   const next = () => {
-    emit(event.NEXT_REQUEST);
+    onEmit(event.NEXT_REQUEST);
   };
   const prev = () => {
-    emit(event.PREV_REQUEST);
+    onEmit(event.PREV_REQUEST);
   };
   const volumeChange = (e) => {
     const v = e.target.value;
-    emit(event.VOLUME_CHANGE_REQUEST, v);
+    onEmit(event.VOLUME_CHANGE_REQUEST, v);
   };
 
   return (
