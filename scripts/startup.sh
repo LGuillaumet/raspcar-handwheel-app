@@ -1,7 +1,9 @@
 #!/bin/bash
 
 ./vcan_script.sh
-sh -c ./start_simulator.sh
+./start_simulator.sh &
+./start_simulator_spa.sh &
+./start_main_server.sh
 
 
 
