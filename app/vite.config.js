@@ -6,7 +6,11 @@ import eslintPlugin from 'vite-plugin-eslint';
 // https://vitejs.dev/config/
 export default defineConfig({
   optimizeDeps: { exclude: ['swiper/react', 'swiper/swiper.min.css', 'swiper/modules/pagination/pagination.min.css'] },
-  esbuild: {
+  build: {
+    minify: false,
+    sourcemap: true // < this allows the browser to point you to the correct file
+
   },
+
   plugins: [eslintPlugin({ cache: false }), react()],
 });

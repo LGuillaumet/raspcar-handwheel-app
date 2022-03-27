@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Slider from 'rc-slider';
-import Switch from 'react-switch';
+import S from 'react-switch';
 
 import 'rc-slider/assets/index.css';
 
@@ -9,6 +9,8 @@ import { FaFan } from 'react-icons/fa';
 import { useSocketCarInformations } from '../../SocketProvider';
 
 import './AirConditionerScreen.scss';
+
+const Switch = S.default ? S.default : S;
 
 export const AirConditionerScreen = () => {
   const { carTemperature, onEmit } = useSocketCarInformations();
