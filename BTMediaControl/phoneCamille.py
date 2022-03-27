@@ -5,7 +5,6 @@ import dbus
 import dbus.mainloop.glib
 import time
 
-logger = logging.getLogger(__name__)
 
 def answer_call(path):
 	call = dbus.Interface(bus.get_object('org.ofono', path),
