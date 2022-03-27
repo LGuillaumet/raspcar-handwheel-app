@@ -35,11 +35,11 @@ export const AirConditionerScreen = () => {
 
   useEffect(() => {
     onEmit('air_speedfan', valueFanEdit);
-  }, [onEmit, valueFanEdit]);
+  }, [valueFanEdit]);
 
   useEffect(() => {
     onEmit('air_temperature', valueTempEdit);
-  }, [onEmit, valueTempEdit]);
+  }, [valueTempEdit]);
 
   const marksTemp = {
     10: <strong>10°C</strong>,

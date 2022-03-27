@@ -19,8 +19,20 @@ export const PhoneScreen = () => {
 
   const handleAnswerCall = () => {
     if (phone.isCalling) {
+      console.log('answer call', phone.path);
       onEmit('answer_call_request', phone.path);
     }
+  };
+
+  const handleHangoutCall = () => {
+    console.log('hangup call', phone.path);
+    onEmit('hangup_call_request', phone.path);
+  };
+
+  const handleMuteMicrophone = () => {
+    setIsMicMuted(!isMicMuted);
+    console.log('mute microphone', isMicMuted);
+    onEmit('mute_microphone', isMicMuted);
   };
 
   return (
@@ -31,7 +43,7 @@ export const PhoneScreen = () => {
       <div className="phone-container d-flex position-relative justify-content-center align-items-center">
         <Button
           className="bg-transparent shadow-none border-0 position-absolute top-0 start-0 m-2"
-          onClick={() => setIsMicMuted(!isMicMuted)}
+          onClick={() => handleMuteMicrophone()}
         >
           {isMicMuted ? (
             <IoMicOffSharp
@@ -65,19 +77,25 @@ export const PhoneScreen = () => {
             />
           )}
         </Button>
+        <div className="d-flex flex-column align-items-center">
+          <span className="text-white mb-1">{phone.phoneNumber}</span>
+          <Button
+            onClick={() => handleAnswerCall()}
+            className={`${
+              phone.isCalling && 'pulse'
+            } rounded-circle bg-transparent svg-shadow border-0 p-0 m-0 `}
+          >
+            <FaPhone
+              className="rounded-circle bg-success bg-gradient p-3"
+              size={160}
+              color="white"
+            />
+          </Button>
+        </div>
         <Button
-          onClick={() => handleAnswerCall()}
-          className={`${
-            phone.isCalling && 'pulse'
-          } rounded-circle bg-transparent svg-shadow border-0 p-0 m-0 `}
+          onClick={() => handleHangoutCall()}
+          className="rounded-circle bg-transparent svg-shadow border-0 p-0 m-1 position-absolute bottom-0 end-0"
         >
-          <FaPhone
-            className="rounded-circle bg-success bg-gradient p-3"
-            size={160}
-            color="white"
-          />
-        </Button>
-        <Button className="rounded-circle bg-transparent svg-shadow border-0 p-0 m-1 position-absolute bottom-0 end-0">
           <FaPhone
             className="PhoneEnd rounded-circle bg-danger bg-gradient p-3 "
             size={80}
