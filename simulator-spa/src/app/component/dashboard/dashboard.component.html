@@ -1,0 +1,138 @@
+<div class="container mt-5">
+  <div class="row justify-content-center" *ngIf="data != null">
+    <div class="row col-12 col-lg-6">
+      <div class="col-12">
+        <div class="input-group mb-3">
+          <span class="input-group-text" id="basic-addon1">Turn Signal</span>
+          <input type="radio" class="btn-check" name="options" id="left" />
+          <label
+            class="btn btn-primary"
+            for="left"
+            (click)="onClickTurnSignal($event)"
+            >Left</label
+          >
+          <input type="radio" class="btn-check" name="options" id="warning" />
+          <label
+            class="btn btn-primary"
+            for="warning"
+            (click)="onClickTurnSignal($event)"
+            >Warning</label
+          >
+          <input type="radio" class="btn-check" name="options" id="right" />
+          <label
+            class="btn btn-primary"
+            for="right"
+            (click)="onClickTurnSignal($event)"
+            >Right</label
+          >
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="input-group mb-3">
+          <span class="input-group-text" id="basic-addon1">Light</span>
+          <input type="radio" class="btn-check" name="light" id="position" />
+          <label
+            class="btn btn-primary"
+            for="position"
+            (click)="onClickLight($event)"
+            >Position</label
+          >
+          <input type="radio" class="btn-check" name="light" id="cruise" />
+          <label
+            class="btn btn-primary"
+            for="cruise"
+            (click)="onClickLight($event)"
+            >Cruise</label
+          >
+          <input type="radio" class="btn-check" name="light" id="fullhead" />
+          <label
+            class="btn btn-primary"
+            for="fullhead"
+            (click)="onClickLight($event)"
+            >Fullhead</label
+          >
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="input-group mb-3 align-items-center">
+          <span class="input-group-text" id="basic-addon1">Motor</span>
+          <div class="form-check form-switch">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="motor"
+              [checked]="data.motor"
+              (change)="onChangeSwitch($event)"
+            />
+          </div>
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="input-group mb-3 align-items-center">
+          <span class="input-group-text" id="basic-addon1">Battery</span>
+          <div class="form-check form-switch">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="battery"
+              [checked]="data.battery"
+              (change)="onChangeSwitch($event)"
+            />
+          </div>
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="input-group mb-3 align-items-center">
+          <span class="input-group-text" id="basic-addon1">Handbrake</span>
+          <div class="form-check form-switch">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="handbrake"
+              [checked]="data.handbrake"
+              (change)="onChangeSwitch($event)"
+            />
+          </div>
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="input-group mb-3 align-items-center">
+          <span class="input-group-text" id="basic-addon1">Air conditioner</span>
+          <div class="form-check form-switch">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="airConditioner"
+              [checked]="data.airConditioner"
+              (change)="onChangeSwitch($event)"
+            />
+          </div>
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="input-group mb-3 align-items-center">
+          <span class="input-group-text" id="basic-addon1">Air SpeedFan : {{data.airSpeedFan}}</span>
+          <input type="range" class="form-range w-50" id="airSpeedFan" [value]="data.airSpeedFan" (change)="onChangeRange($event)" min="0" max="100"/>
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="input-group mb-3 align-items-center">
+          <span class="input-group-text" id="basic-addon1">Air Temperature : {{data.airTemperature}}</span>
+          <input type="range" class="form-range w-50" id="airTemperature" [value]="data.airTemperature" (change)="onChangeRange($event)" min="10" max="40"/>
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="input-group mb-3 align-items-center">
+          <span class="input-group-text" id="basic-addon1">Car Temperature : {{data.carTemperature}}</span>
+          <input type="range" class="form-range w-50" id="carTemperature" [value]="data.carTemperature" (change)="onChangeRange($event)" min="0" max="100"/>
+        </div>
+      </div>
+    </div>
+    <div class="row col-12 col-lg-6">
+      <div class="col-12">
+        <h1>Show car data</h1>
+        <pre><p>{{this.data | json}}</p></pre>
+      </div>
+    </div>
+  </div>
+</div>
