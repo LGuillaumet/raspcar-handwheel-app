@@ -84,6 +84,8 @@ fuser -k 8086/tcp
 
 ## Command can 
 
+sudo apt-get install can-utils
+
 - show live bus can : candump can1
 - send : cansend vcan_rx 00A#15
 
