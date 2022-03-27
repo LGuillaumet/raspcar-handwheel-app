@@ -3,8 +3,6 @@ import { Subject, takeUntil } from 'rxjs';
 import { SimulatorService } from 'src/app/core/simulator/simulator.service';
 import { CarData } from 'src/app/core/simulator/simulator.types';
 
-type Action = () => void;
-
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
@@ -29,12 +27,22 @@ export class DashboardComponent implements OnInit {
     carTemperature: 0
   };
 
+  public connectionState = false;
+
+  get connectionLabel(): string {
+    return this.connectionState ? 'Connected' : 'Disconnected';
+  }
+
   constructor(private service: SimulatorService) { }
 
   ngOnInit(): void {
     this.service.carData
       .pipe(takeUntil(this._unsubscribeAll))
       .subscribe((data: CarData) => this.data = data)
+
+    this.service.connection
+      .pipe(takeUntil(this._unsubscribeAll))
+      .subscribe((data: boolean) => this.connectionState = data)
   }
 
   ngOnDestroy(): void {

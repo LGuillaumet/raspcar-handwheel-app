@@ -33,9 +33,19 @@ export class SimulatorService {
   private socket$: WebSocketSubject<CarData>;
   private _carData = new BehaviorSubject<CarData>(this.store.carData);
   readonly carData = this._carData.asObservable();
+  private _connection = new BehaviorSubject<boolean>(false);
+  readonly connection = this._connection.asObservable();
 
   constructor() {
-    this.socket$ = webSocket(WS_URL);
+    this.socket$ = webSocket({
+      url: WS_URL,
+      openObserver: {
+        next: (val: any) => {
+          console.log('opened :', val);
+          this._connection.next(true);
+        }
+      }
+    });
     this.socket$
       .pipe(retry({count: 10, delay: 10000, resetOnSuccess: true}))
       .subscribe({
@@ -64,7 +74,8 @@ export class SimulatorService {
   }
 
   private onError(err: any): void {
-    console.log(err)
+    console.error(err)
+    this._connection.next(false);
   }
 
   private onComplete(): void {
