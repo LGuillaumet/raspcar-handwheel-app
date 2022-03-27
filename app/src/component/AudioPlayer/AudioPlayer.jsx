@@ -34,12 +34,15 @@ const AudioPlayer = () => {
   };
 
   const play = () => {
+    console.log('play');
     onEmit(event.PLAY_REQUEST);
   };
   const pause = () => {
+    console.log('pause');
     onEmit(event.PAUSE_REQUEST);
   };
   const next = () => {
+    console.log('pause');
     onEmit(event.NEXT_REQUEST);
   };
   const prev = () => {
@@ -80,8 +83,8 @@ const AudioPlayer = () => {
           </Button>
         ) : (
           <Button
-            className="pause-btn control-btn ripple center border-0"
-            onClick={() => pause()}
+            className="play-btn control-btn ripple center border-0"
+            onClick={() => play()}
           >
             <FaPlay />
           </Button>

@@ -1,6 +1,6 @@
+/* eslint-disable no-console */
 import React, {
   createContext,
-  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -18,6 +18,7 @@ export const SocketContext = createContext();
 export const useSocketCarInformations = () => useContext(SocketContext);
 
 export const SocketProvider = ({ ENDPOINT, children }) => {
+  const [socket, setSocket] = useState(null);
   const [player, setPlayer] = useState({
     title: 'Title',
     album: 'Album',
@@ -49,7 +50,6 @@ export const SocketProvider = ({ ENDPOINT, children }) => {
   const [phone, setPhone] = useState({
     isCalling: false,
     callAnswered: false,
-    callHangup: false,
     phoneNumber: '',
     path: '',
   });
@@ -79,133 +79,153 @@ export const SocketProvider = ({ ENDPOINT, children }) => {
     t();
   };
 
-  let socket = null;
-
   const onEmit = (e, data) => {
+    console.log('emit beforeSocket', e, data);
     if (socket) {
+      console.log('emit', e, data);
       socket.emit(e, data);
     }
   };
 
   useEffect(() => {
-    socket = io.connect(ENDPOINT);
-    // socket.emit(request.VOLUME_CHANGE_REQUEST, 75);
-    socket.on(event.PLAY_INIT, (data) => {
-      setPlayer((p) => ({
-        ...p,
-        isPlaying: true,
-        title: data.title,
-        album: data.album,
-        coverImage: data.coverImage,
-        duration: data.duration,
-      }));
-    });
-    socket.on(event.TRACK, (data) => {
-      setPlayer((p) => ({
-        ...p,
-        isPlaying: true,
-        title: data.title,
-        album: data.album,
-        // coverImage: data.coverImage,
-        duration: data.duration,
-      }));
-      // play()
-    });
-    socket.on(event.PLAY, (data) => {
-      play();
-    });
-    socket.on(event.NEXT, (data) => {
-      setPlayer((p) => ({ ...p, progress: '0' }));
-      play();
-    });
-    socket.on(event.PREV, (data) => {
-      setPlayer((p) => ({ ...p, progress: '0' }));
-      play();
-    });
-    socket.on(event.PAUSE, (data) => {
-      pause();
-    });
-    socket.on(event.VOLUME_CHANGE, (v) => {
-      setPlayer((p) => ({ ...p, volume: v }));
-    });
-    socket.on(event.PLAYING_PROGRESS, (time) => {
-      setPlayer((p) => ({ ...p, progress: time }));
-    });
+    const newSocket = io(ENDPOINT);
+    setSocket(newSocket);
+    // return () => newSocket.close();
+  }, [setSocket]);
 
-    socket.on('connect', () => {
-      console.log('LOGGED IN', socket); // x8WIv7-mJelg7on_ALbx
-    });
+  useEffect(() => {
+    if (socket) {
+      console.log('socket connected');
+      // socket.emit(request.VOLUME_CHANGE_REQUEST, 75);
+      socket.on(event.PLAY_INIT, (data) => {
+        setPlayer((p) => ({
+          ...p,
+          isPlaying: true,
+          title: data.title,
+          album: data.album,
+          coverImage: data.coverImage,
+          duration: data.duration,
+        }));
+      });
+      socket.on(event.TRACK, (data) => {
+        setPlayer((p) => ({
+          ...p,
+          isPlaying: true,
+          title: data.title,
+          album: data.album,
+          // coverImage: data.coverImage,
+          duration: data.duration,
+        }));
+        // play()
+      });
+      socket.on(event.PLAY, () => {
+        play();
+      });
+      socket.on(event.NEXT, () => {
+        setPlayer((p) => ({ ...p, progress: '0' }));
+        play();
+      });
+      socket.on(event.PREV, () => {
+        setPlayer((p) => ({ ...p, progress: '0' }));
+        play();
+      });
+      socket.on(event.PAUSE, () => {
+        console.log('pause');
+        pause();
+      });
+      socket.on(event.VOLUME_CHANGE, (v) => {
+        setPlayer((p) => ({ ...p, volume: v }));
+      });
+      socket.on(event.PLAYING_PROGRESS, (time) => {
+        setPlayer((p) => ({ ...p, progress: time }));
+      });
 
-    socket.on('initial_state', (data) => {
-      console.log(data);
-    });
+      socket.on('connect', () => {
+        console.log('LOGGED IN', socket); // x8WIv7-mJelg7on_ALbx
+      });
 
-    socket.on('POSITION_LIGHT', (res) => {
-      setCarCondition((prev) => ({ ...prev, positionLight: res }));
-    });
+      socket.on('initial_state', (data) => {
+        console.log(data);
+      });
 
-    socket.on('CRUISE_LIGHT', (res) => {
-      setCarCondition((prev) => ({ ...prev, cruiseLight: res }));
-    });
+      socket.on('POSITION_LIGHT', (res) => {
+        setCarCondition((prev) => ({ ...prev, positionLight: res }));
+      });
 
-    socket.on('FULLHEAD_LIGHT', (res) => {
-      setCarCondition((prev) => ({ ...prev, fullheadLight: res }));
-    });
+      socket.on('CRUISE_LIGHT', (res) => {
+        setCarCondition((prev) => ({ ...prev, cruiseLight: res }));
+      });
 
-    socket.on('MOTOR', (res) => {
-      setCarCondition((prev) => ({ ...prev, motorProblem: res }));
-    });
+      socket.on('FULLHEAD_LIGHT', (res) => {
+        setCarCondition((prev) => ({ ...prev, fullheadLight: res }));
+      });
 
-    socket.on('BATTERY', (res) => {
-      setCarCondition((prev) => ({ ...prev, batteryProblem: res }));
-    });
+      socket.on('MOTOR', (res) => {
+        setCarCondition((prev) => ({ ...prev, motorProblem: res }));
+      });
 
-    socket.on('HANDBRAKE', (res) => {
-      setCarCondition((prev) => ({ ...prev, handbrakeProblem: res }));
-    });
+      socket.on('BATTERY', (res) => {
+        setCarCondition((prev) => ({ ...prev, batteryProblem: res }));
+      });
 
-    socket.on('TURN_SIGNAL_RIGHT', (res) => {
-      setCarCondition((prev) => ({ ...prev, turnRight: res }));
-    });
+      socket.on('HANDBRAKE', (res) => {
+        setCarCondition((prev) => ({ ...prev, handbrakeProblem: res }));
+      });
 
-    socket.on('TURN_SIGNAL_LEFT', (res) => {
-      setCarCondition((prev) => ({ ...prev, turnLeft: res }));
-    });
+      socket.on('TURN_SIGNAL_RIGHT', (res) => {
+        setCarCondition((prev) => ({ ...prev, turnRight: res }));
+      });
 
-    socket.on('AIR_SPEEDFAN', (res) => {
-      setCarTemperature((prev) => ({ ...prev, airSpeedFan: res }));
-    });
+      socket.on('TURN_SIGNAL_LEFT', (res) => {
+        setCarCondition((prev) => ({ ...prev, turnLeft: res }));
+      });
 
-    socket.on('AIR_TEMPERATURE', (res) => {
-      setCarTemperature((prev) => ({ ...prev, airTemperature: res }));
-    });
+      socket.on('AIR_SPEEDFAN', (res) => {
+        setCarTemperature((prev) => ({ ...prev, airSpeedFan: res }));
+      });
 
-    socket.on('CAR_TEMPERATURE', (res) => {
-      setCarTemperature((prev) => ({ ...prev, carTemperature: res }));
-    });
+      socket.on('AIR_TEMPERATURE', (res) => {
+        setCarTemperature((prev) => ({ ...prev, airTemperature: res }));
+      });
 
-    socket.on('AIR_CONDITIONER', (res) => {
-      setCarTemperature((prev) => ({ ...prev, airConditioner: res }));
-    });
+      socket.on('CAR_TEMPERATURE', (res) => {
+        setCarTemperature((prev) => ({ ...prev, carTemperature: res }));
+      });
 
-    socket.on('PHONE_CALLING', (res) => {
-      console.log('PHONE_CALLING', res);
-      // setPhone((prev) => ({
-      //   ...prev,
-      //   isCalling: boolVal,
-      //   phoneNumber,
-      //   path,
-      // }));
-    });
+      socket.on('AIR_CONDITIONER', (res) => {
+        setCarTemperature((prev) => ({ ...prev, airConditioner: res }));
+      });
 
-    socket.on('ANWSER_CALL', () => {
-      setPhone((prev) => ({ ...prev, callAnswered: true }));
-    });
+      socket.on('PHONE_CALLING', (res) => {
+        const resPhoneState = JSON.parse(res);
+        setPhone((prev) => ({
+          ...prev,
+          isCalling: resPhoneState.isCalling,
+          phoneNumber: resPhoneState.phoneNumber,
+          path: resPhoneState.path,
+        }));
+      });
 
-    socket.on('HANGUP_CALL', () => {
-      setPhone((prev) => ({ ...prev, callHangup: true }));
-    });
-  }, []);
+      socket.on('ANWSER_CALL', (res) => {
+        const resPhoneState = JSON.parse(res);
+        setPhone((prev) => ({
+          ...prev,
+          isCalling: false,
+          path: resPhoneState.path,
+          callAnswered: true,
+        }));
+      });
+
+      socket.on('HANGUP_CALL', () => {
+        setPhone((prev) => ({
+          ...prev,
+          isCalling: false,
+          path: '',
+          callAnswered: false,
+        }));
+      });
+    }
+  }, [socket]);
 
   const value = useMemo(
     () => ({
@@ -215,8 +235,7 @@ export const SocketProvider = ({ ENDPOINT, children }) => {
       phone,
       onEmit,
     }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [carCondition, carTemperature, phone, player]
+    [carCondition, carTemperature, onEmit, phone, player]
   );
 
   return (
