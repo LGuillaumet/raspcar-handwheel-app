@@ -251,6 +251,7 @@ async def readMsgFromSocket():
     print("Starting thread")
     while True:
         msg = readBus.recv()
+        print(msg)
         if msg is not None:
             m = { "ID": msg.arbitration_id, "data": msg.data }
             print(int(msg.arbitration_id))
@@ -333,6 +334,9 @@ app.router.add_get('/', index)
 
 if __name__ == "__main__":
 
+    thread3 = threading.Thread(target=asyncio.run, args=(readMsgFromSocket(),))
+    thread3.start()
+
     global vcmanager
 
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
@@ -354,12 +358,8 @@ if __name__ == "__main__":
     player = MediaPlayer()
     print("Starting server")
 
-    if player:
-        thread1 = threading.Thread(
-            target=asyncio.run, args=(web.run_app(app, port=8085),))
-        thread2 = threading.Thread(target=asyncio.run, args=(mainloop.run()))
-		# FUCKING TRICKS BECAUSE PYTHON IS NOT A FUCKING LANGUAGE TO DO THIS 
-        thread3 = threading.Thread(target=asyncio.run, args=(readMsgFromSocket(),))
-        thread3.start()
-        thread1.start()
-        thread2.start()
+    #if player:
+    thread1 = threading.Thread(target=asyncio.run, args=(web.run_app(app, port=8085),))
+    thread2 = threading.Thread(target=asyncio.run, args=(mainloop.run()))
+    thread1.start()
+    thread2.start()
