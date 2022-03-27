@@ -8,71 +8,107 @@ mod simulator {
 use futures_util::{StreamExt};
 use tokio::task;
 use tokio_socketcan::{CANFrame, CANSocket, Error};
-use tokio::net::{TcpListener};
 use log::*;
 use simulator::models::*;
 use tokio::sync::mpsc::channel;
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
+use simple_websockets::{Event, Responder};
 
-async fn handler_websocket(sender: tokio::sync::mpsc::Sender<CarData>) -> Result<(), Error> {
+type CarDataMutex = Arc<Mutex<CarData>>;
+type ClientsMutex = Arc<Mutex<HashMap<u64, Responder>>>;
+type CanReceiverFn = fn(CarDataMutex, &[u8], ClientsMutex) -> ();
 
-    info!("Start handler websocket.");
+async fn handler_websocket(sender: tokio::sync::mpsc::Sender<CarData>, mut map: ClientsMutex){
 
-    let addr = "0.0.0.0:8080".to_string();
+    let tx = sender.clone();
+    let event_hub = simple_websockets::launch(8080).expect("Failed to listen on port 8080 \u{1F914}");
 
-    // Create the event loop and TCP listener we'll accept connections on.
-    let try_socket = TcpListener::bind(&addr).await;
-    let listener = try_socket.expect("Failed to bind");
-
-    println!("Listening on: {}", addr);
-
-    while let Ok((stream, _)) = listener.accept().await {
-
-        let peer = stream.peer_addr().expect("connected streams should have a peer address");
-
-        info!("Peer address: {}", peer);
-
-        let tx = sender.clone();
-
-        tokio::spawn(async move { 
-
-            let mut ws_stream = tokio_tungstenite::accept_async(stream).await.expect("Failed to accept");
-
-            info!("New WebSocket connection: {}", peer);
-
-            while let Some(msg) = ws_stream.next().await {
-                let data = msg.unwrap();
-                let data2 = data.to_text().expect("this is not a text");
-                let car_data = serde_json::from_str(data2).expect("Can't parse to JSON");
-                let _ = tx.send(car_data).await;
+    loop {
+        match event_hub.poll_event() {
+            Event::Connect(client_id, responder) => {
+                info!("A client connected with id #{} \u{1F60E}", client_id);
+                let mut c = data_lock_mutex.lock().unwrap();
+                c.insert(client_id, responder);
+            },
+            Event::Disconnect(client_id) => {
+                info!("Client #{} disconnected \u{1F622}", client_id);
+                let mut c = data_lock_mutex.lock().unwrap();
+                c.remove(&client_id);
+            },
+            Event::Message(client_id, message) => {
+                if let simple_websockets::Message::Text(data) = message {
+                    info!("Received a message from client #{}: {:?}", client_id, data);
+                    let value = data.as_str();
+                    let car_data: CarData = serde_json::from_str(value).expect("Can't parse to JSON");
+                    let _ = tx.send(car_data).await;
+                }
             }
-        });
+        }
     }
-
-    info!("End of handler websocket.");
-
-    Ok(())
 }
 
+async fn reader_can(mut reader: CANSocket, datamutex: CarDataMutex, dict: HashMap<u32, CanReceiverFn>, map: ClientsMutex) -> Result<(), Error> {
 
-/*async fn handler_can(mut reader: CANSocket, writer: CANSocket) -> Result<(), Error> {
-
-    info!("Start handler virtual bus can.");
+    info!("Start Reader virtual bus can.");
 
     while let Some(Ok(frame)) = reader.next().await {
-        //writer.write_frame(frame)?.await?;
+
+        info!("Event bus can : ID {} - DATA {:X?}", frame.id(), frame.data());
+
+        if frame.data().len() == 0 {
+            continue;
+        }
+
+        let result: Option<&CanReceiverFn> = dict.get(&frame.id());
+        match result {
+            Some(x) => x(datamutex.clone(), frame.data(), map.clone()),
+            None    => info!("\u{1F622} Handler not implemented \u{1F622}"),
+        }
     }
 
     info!("End of handler virtual bus can.");
 
     Ok(())
-}*/
+}
+
+fn ser_and_send(car: &CarData, map: ClientsMutex){
+    let toto = serde_json::to_string(&car).expect("cannot serialize value");
+    for (_, value) in map {
+        value.send(simple_websockets::Message::Text(toto.clone()));
+    }
+}
+
+fn handler_can_air_conditioner_rw(datamutex: CarDataMutex, data: &[u8], map: ClientsMutex) {
+    let car = datamutex.lock().unwrap();
+    let mut inner: CarData = *car;
+    inner.air_conditioner = data[0] != 0;
+    ser_and_send(&inner, map);
+}
+
+fn handler_can_air_speed_fan_rw(datamutex: CarDataMutex, data: &[u8], map: ClientsMutex) {
+    let car = datamutex.lock().unwrap();
+    let mut inner: CarData = *car;
+    inner.air_speed_fan = data[0];
+    ser_and_send(&inner, map);
+}
+
+fn handler_can_air_temperature_rw(datamutex: CarDataMutex, data: &[u8], map: ClientsMutex) {
+    let car = datamutex.lock().unwrap();
+    let mut inner: CarData = *car;
+    inner.air_temperature = data[0];
+    ser_and_send(&inner, map);
+}
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
 
     env_logger::init();
 
-    let mut car_data: CarData = CarData {
+    info!("Start Rust simulator \u{1F60E}");
+
+    // CarData thread safe
+    let datamutex = Arc::new(Mutex::new(CarData {
         position_light: false,
         cruise_light: false,
         fullhead_light: false,
@@ -81,31 +117,45 @@ async fn main() -> Result<(), Error> {
         handbrake: false,
         turn_signal_right: false,
         turn_signal_left: false,
+        air_conditioner: false,
         air_speed_fan: 0,
-        air_temperature: 0
-    };
+        air_temperature: 0,
+        car_temperature: 0
+    }));
 
-    info!("Start rust simulator.");
+    // Dictionnary of callback function for event received from buscan
+    let mut dict: HashMap<u32, CanReceiverFn> = HashMap::new();
+    let mut clients: HashMap<u64, Responder> = Arc::new(Mutex::new(HashMap::new());
+    dict.insert(9, handler_can_air_conditioner_rw);
+    dict.insert(10, handler_can_air_speed_fan_rw);
+    dict.insert(11, handler_can_air_temperature_rw);
 
-    let socket_tx = CANSocket::open("can1")?;
+    // Setup buscan
+    let socket_rx = CANSocket::open("vcan_rx")?;
+    let socket_tx = CANSocket::open("vcan_tx")?;
     
-    //let task_can = task::spawn(handler_can(socket_rx, socket_tx));
-
     let (tx, mut rx) = channel(32);
 
-    let task_websocket = task::spawn(handler_websocket(tx));
+    // Create and start thread to handle : 
+    // - new incomming event buscan
+    // - message from websocket
+    let task_can = task::spawn(reader_can(socket_rx, datamutex.clone(), dict, clients.clone()));
+    let task_websocket = task::spawn(handler_websocket(tx, clients.clone()));
+
+    let data_lock_mutex: CarDataMutex = datamutex.clone();
 
     while let Some(data) = rx.recv().await {
 
-        let result = car_data.cmp_and_set(data);
+        let mut data_car = data_lock_mutex.lock().unwrap();
+        let result = data_car.cmp_and_set(data);
 
         for value in result {
             let frame = CANFrame::new(value.propertie_type, &[value.value], false, false).unwrap();
             let _ = socket_tx.write_frame(frame)?.await;
         }
     }
-    info!("Waiting websocket.");
-    //let _ = task_can.await;
+
+    let _ = task_can.await;
     let _ = task_websocket.await;
 
     info!("End of rust simulator.");

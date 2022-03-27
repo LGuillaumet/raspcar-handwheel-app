@@ -57,6 +57,18 @@ DASHBOARDPAGE="http://localhost:3000/"
 
 # RUST SIMULATOR
 
+## Install virtual can 
+
+sudo modprobe vcan
+
+sudo ip link add dev vcan_tx type vcan
+sudo ip link set up vcan_tx
+
+sudo ip link add dev vcan_rx type vcan
+sudo ip link set up vcan_rx
+
+## Install rust and execute
+
 https://doc.rust-lang.org/book/ch01-01-installation.html
 
 curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh
@@ -67,3 +79,11 @@ cargo build
 
 cd simulator
 RUST_LOG=debug cargo run
+
+fuser -k 8086/tcp
+
+## Command can 
+
+- show live bus can : candump can1
+- send : cansend vcan_rx 00A#15
+
