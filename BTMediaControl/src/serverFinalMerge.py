@@ -83,11 +83,17 @@ def disconnect(sid):
 
 
 @sio.event
+async def track_informations_request(sid, msg):
+    info = player.GetTrackInfo()
+    await sio.emit('track_info', {'title': info.get('Title'), 'progress': info.get('Position'), 'album': info.get('Album'), 'duration': info.get('Duration'), 'artist': info.get('Artist')})
+    print("GetTrackInfo")
+
+@sio.event
 async def play_request(sid, msg):
     info = player.GetTrackInfo()
     player.Play()
     await sio.emit('play_init', {'title': info.get('Title'), 'coverImage': 'https://icons-for-free.com/iconfiles/png/512/logo+music+network+social+icon-1320086278635471580.png', 'album': info.get('Album'), 'duration': info.get('Duration'), 'artist': info.get('Artist')})
-    await sio.emit('playing_progress', 6000)
+    await sio.emit('playing_progress', info.get('Position'))
     print("Playing")
 
 
@@ -102,11 +108,12 @@ async def pause_request(sid, msg):
 async def next_request(sid, msg):
     player.Next()
     await sio.emit('next')
+    print("Next track")
     time.sleep(2.5)
     info = player.GetTrackInfo()
-    await sio.emit('play_init', {'title': info.get('Title'), 'coverImage': 'https://icons-for-free.com/iconfiles/png/512/logo+music+network+social+icon-1320086278635471580.png', 'album': info.get('Album'), 'duration': info.get('Duration'), 'artist': info.get('Artist')})
+    await sio.emit('play_init', {'title': info.get('Title'),'album': info.get('Album'), 'duration': info.get('Duration'), 'artist': info.get('Artist'), 'coverImage': 'https://icons-for-free.com/iconfiles/png/512/logo+music+network+social+icon-1320086278635471580.png'})
     showInfos = info.get('Title')
-    print("Infos", showInfos)
+    print("track infos", showInfos)
 
 
 @sio.event
@@ -114,6 +121,11 @@ async def prev_request(sid, msg):
     player.Previous()
     await sio.emit('prev')
     print("Previous track")
+    time.sleep(2.5)
+    info = player.GetTrackInfo()
+    await sio.emit('play_init', {'title': info.get('Title'), 'album': info.get('Album'), 'duration': info.get('Duration'), 'artist': info.get('Artist'), 'coverImage': 'https://icons-for-free.com/iconfiles/png/512/logo+music+network+social+icon-1320086278635471580.png'})
+    showInfos = info.get('Title')
+    print("track infos", showInfos)
 
 
 @sio.event
@@ -276,13 +288,13 @@ def air_conditioner(sid, isAirConditionerOn):
 
 @sio.event
 def air_speedfan(sid, numberToSet):
-    message = can.Message(arbitration_id=11, is_extended_id=True, data=bytearray([int(numberToSet)]))
+    message = can.Message(arbitration_id=10, is_extended_id=True, data=bytearray([int(numberToSet)]))
     writeBus.send(message, timeout=0.2)
     print('air_speedfan received', numberToSet)
 
 @sio.event
 def air_temperature(sid, numberToSet):
-    message = can.Message(arbitration_id=10, is_extended_id=True, data=bytearray([int(numberToSet)]))
+    message = can.Message(arbitration_id=11, is_extended_id=True, data=bytearray([int(numberToSet)]))
     writeBus.send(message, timeout=0.2)
     print('air_temperature received', numberToSet)
 
