@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { useSocketCarInformations } from './SocketProvider';
 
@@ -14,11 +13,8 @@ import './App.scss';
 
 // const ENDPOINT = 'https://raspcar.loca.lt'
 const App = () => {
-  const { phone, player, onEmit } = useSocketCarInformations();
+  const { phone } = useSocketCarInformations();
 
-  useEffect(() => {
-    console.log(phone.isCalling);
-  }, [phone.isCalling]);
   return (
     <div>
       {(phone.isCalling || phone.callAnswered) ? (
