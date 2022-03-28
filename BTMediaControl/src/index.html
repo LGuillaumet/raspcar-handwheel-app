@@ -17,27 +17,6 @@
       socket.on('disconnect', function(){console.log('disconnect!')});
       socket.on('reply', function(msg){console.log('reply!', msg)});
 
-      
-
-      function play(){
-          socket.emit('play', "playing music")
-          console.log("playing")
-      }
-      function pause(){
-          socket.emit('pause', "pausing music")
-          console.log("pausing")
-      }
-
-      function next(){
-          socket.emit('next', "next song")
-          console.log("next song")
-      }
-
-      function prev(){
-          socket.emit('prev', "previous song")
-          console.log("previous song")
-      }
-
     </script>
   </body>
 </html>
