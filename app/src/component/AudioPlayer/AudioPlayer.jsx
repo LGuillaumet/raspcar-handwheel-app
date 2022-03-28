@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import moment from 'moment';
 import _ from 'lodash';
 import { Button } from 'reactstrap';
@@ -12,6 +13,8 @@ import './AudioPlayer.scss';
 
 const AudioPlayer = () => {
   const { player, onEmit } = useSocketCarInformations();
+
+  const [waitData, setWaitData] = useState(false);
 
   const progressInDeg = (curr, total) => {
     // entre 0 et 180deg
@@ -52,6 +55,24 @@ const AudioPlayer = () => {
     const v = e.target.value;
     onEmit(event.VOLUME_CHANGE_REQUEST, v);
   };
+
+  // Need to be refactored
+  if (
+    !waitData
+    && _.toNumber(player.duration) > 0
+    && _.toNumber(player.progress) >= _.toNumber(player.duration)
+  ) {
+    setWaitData(true);
+    // When track is finished, we need to update track's informations
+    onEmit('track_informations_request');
+  }
+
+  useEffect(() => {
+    if (player.isPlaying) {
+      // at each update of player, useEffect will be called
+      setWaitData(false);
+    }
+  }, [player]);
 
   return (
     <div id="player" className="center">
@@ -97,7 +118,7 @@ const AudioPlayer = () => {
           <span>{player.volume}</span>
         </div>
         <div className="title text-white">{player.title}</div>
-        <div className="album">{player.album}</div>
+        <div className="album">{player.artist}</div>
       </div>
       <div className="music-controls center">
         <Button

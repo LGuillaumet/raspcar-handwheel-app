@@ -22,6 +22,7 @@ export const SocketProvider = ({ ENDPOINT, children }) => {
   const [player, setPlayer] = useState({
     title: 'Title',
     album: 'Album',
+    artist: 'Artist',
     coverImage: '',
     volume: 0,
     progress: '0',
@@ -68,8 +69,10 @@ export const SocketProvider = ({ ENDPOINT, children }) => {
   };
 
   const pause = () => {
-    clearTimeout(timer);
     setPlayer((p) => ({ ...p, isPlaying: false }));
+    if (timer) {
+      clearTimeout(timer);
+    }
   };
   const play = () => {
     setPlayer((p) => ({ ...p, isPlaying: true }));
@@ -80,7 +83,6 @@ export const SocketProvider = ({ ENDPOINT, children }) => {
   };
 
   const onEmit = (e, data) => {
-    console.log('emit beforeSocket', e, data);
     if (socket) {
       console.log('emit', e, data);
       socket.emit(e, data);
@@ -96,25 +98,46 @@ export const SocketProvider = ({ ENDPOINT, children }) => {
   useEffect(() => {
     if (socket) {
       console.log('socket connected');
-      // socket.emit(request.VOLUME_CHANGE_REQUEST, 75);
+
+      socket.on('track_info', (data) => {
+        setPlayer((p) => ({
+          ...p,
+          album: data.album,
+          artist: data.artist,
+          coverImage: data.coverImage,
+          duration: data.duration,
+          title: data.title,
+          progress: data.progress,
+        }));
+        if (timer) {
+          clearTimeout(timer);
+        }
+        t();
+      });
+
       socket.on(event.PLAY_INIT, (data) => {
         setPlayer((p) => ({
           ...p,
-          isPlaying: true,
-          title: data.title,
           album: data.album,
+          artist: data.artist,
           coverImage: data.coverImage,
           duration: data.duration,
+          isPlaying: true,
+          title: data.title,
         }));
+        if (timer) {
+          clearTimeout(timer);
+        }
+        t();
       });
       socket.on(event.TRACK, (data) => {
         setPlayer((p) => ({
           ...p,
+          album: data.album,
+          artist: data.artist,
+          duration: data.duration,
           isPlaying: true,
           title: data.title,
-          album: data.album,
-          // coverImage: data.coverImage,
-          duration: data.duration,
         }));
         // play()
       });
@@ -145,7 +168,7 @@ export const SocketProvider = ({ ENDPOINT, children }) => {
       });
 
       socket.on('initial_state', (data) => {
-        console.log(data);
+        console.log('car initial state', JSON.parse(data));
       });
 
       socket.on('POSITION_LIGHT', (res) => {
@@ -230,6 +253,7 @@ export const SocketProvider = ({ ENDPOINT, children }) => {
   const value = useMemo(
     () => ({
       player,
+      setPlayer,
       carCondition,
       carTemperature,
       phone,

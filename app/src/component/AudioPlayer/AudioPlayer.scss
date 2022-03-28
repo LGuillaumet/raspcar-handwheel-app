@@ -81,7 +81,7 @@
 }
 #player .music-info {
   text-overflow: ellipsis;
-  height: 65px;
+  height: 70px;
   position: absolute;
   bottom: 80px;
   margin: auto;
@@ -203,4 +203,5 @@
   -moz-transition:.3s all;
   -ms-transition:.3s all;
   -o-transition:.3s all;
+  background-color: transparent;
 }

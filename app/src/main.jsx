@@ -7,7 +7,7 @@ import './index.css';
 
 ReactDOM.render(
   <React.StrictMode>
-    <SocketProvider ENDPOINT="192.168.1.29:8085">
+    <SocketProvider ENDPOINT="192.168.1.22:8085">
       <App />
     </SocketProvider>
   </React.StrictMode>,

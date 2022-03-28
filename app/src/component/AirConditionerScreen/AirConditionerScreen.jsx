@@ -21,6 +21,12 @@ export const AirConditionerScreen = () => {
   const [valueFanEdit, setValueFanEdit] = useState(valueFan);
   const [valueSwitch, setValueSwitch] = useState(carTemperature.airConditioner);
 
+  useEffect(() => {
+    setValueSwitch(carTemperature.airConditioner);
+    setValueTemp(carTemperature.airTemperature);
+    setValueFan(carTemperature.airSpeedFan);
+  }, [carTemperature]);
+
   const handleToggleSwitch = () => {
     setValueSwitch(!valueSwitch);
     onEmit('air_conditioner', !valueSwitch);
@@ -32,7 +38,7 @@ export const AirConditionerScreen = () => {
     } else {
       setValueFanEdit(0);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [valueSwitch]);
 
   useEffect(() => {
