@@ -220,6 +220,7 @@ export const SocketProvider = ({ ENDPOINT, children }) => {
       });
 
       socket.on('PHONE_CALLING', (res) => {
+        console.log('phone calling', res);
         const resPhoneState = JSON.parse(res);
         setPhone((prev) => ({
           ...prev,

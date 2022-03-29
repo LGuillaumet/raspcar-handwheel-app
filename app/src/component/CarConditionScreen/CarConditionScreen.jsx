@@ -83,7 +83,7 @@ export const CarConditionScreen = () => {
               <ReactSVG
                 src={BatteryIcon}
                 beforeInjection={(svg) => {
-                  svg.classList.add(carCondition.handbrakeProblem && 'glow-alert');
+                  svg.classList.add(carCondition.batteryProblem && 'glow-alert');
                   svg.setAttribute('style', 'width: 2rem; height: auto;');
                 }}
               />
