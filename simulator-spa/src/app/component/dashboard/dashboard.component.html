@@ -1,9 +1,18 @@
 <div class="container mt-5">
   <div class="row justify-content-center" *ngIf="data != null">
-    <div class="col-12">
-      <h2>Simulator serveur connection state : {{connectionLabel}}</h2>
+    <div class="row col-12">
+      <div class="col-12">
+        <h2>Simulator serveur {{connectionUrl}} connection state : {{connectionLabel}}</h2>
+      </div>
+      <div class="col-12">
+        <div class="input-group">
+          <span class="input-group-text" id="basic-addon1">hostname:port</span>
+          <input type="text" class="form-control" placeholder="host" aria-label="host" [value]="connectionUrl" (change)="connectionChange($event)" aria-describedby="basic-addon1">
+          <button type="button" class="btn btn-primary" (click)="connect()">Connect</button>
+        </div>
+      </div>
     </div>
-    <div class="row col-12 col-lg-6">
+    <div class="row col-12 col-lg-6 mt-5">
       <div class="col-12">
         <div class="input-group mb-3">
           <span class="input-group-text" id="basic-addon1">Turn Signal</span>
@@ -27,6 +36,13 @@
             for="right"
             (click)="onClickTurnSignal($event)"
             >Right</label
+          >
+          <input type="radio" class="btn-check" name="options" id="none" />
+          <label
+            class="btn btn-primary"
+            for="none"
+            (click)="onClickTurnSignal($event)"
+            >None</label
           >
         </div>
       </div>
@@ -53,6 +69,13 @@
             for="fullhead"
             (click)="onClickLight($event)"
             >Fullhead</label
+          >
+          <input type="radio" class="btn-check" name="light" id="none" />
+          <label
+            class="btn btn-primary"
+            for="none"
+            (click)="onClickLight($event)"
+            >None</label
           >
         </div>
       </div>
@@ -131,7 +154,7 @@
         </div>
       </div>
     </div>
-    <div class="row col-12 col-lg-6">
+    <div class="row col-12 col-lg-6 mt-5">
       <div class="col-12">
         <h1>Show car data</h1>
         <pre><p>{{this.data | json}}</p></pre>

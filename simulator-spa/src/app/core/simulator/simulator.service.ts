@@ -13,6 +13,7 @@ export class SimulatorService {
 
   private store: {
     carData: CarData;
+    url: string;
   } = {
     carData: {
       positionLight: false,
@@ -27,7 +28,8 @@ export class SimulatorService {
       airSpeedFan: 0,
       airTemperature: 10,
       carTemperature: 0
-    }
+    },
+    url: environment.wsUrl
   }
 
   private socket$: WebSocketSubject<CarData>;
@@ -35,10 +37,40 @@ export class SimulatorService {
   readonly carData = this._carData.asObservable();
   private _connection = new BehaviorSubject<boolean>(false);
   readonly connection = this._connection.asObservable();
+  private _connectionUrl = new BehaviorSubject<string>(this.store.url);
+  readonly connectionUrl = this. _connectionUrl.asObservable()
 
   constructor() {
     this.socket$ = webSocket({
-      url: WS_URL,
+      url: this.store.url,
+      openObserver: {
+        next: (val: any) => {
+          console.log('opened :', val);
+          this._connection.next(true);
+        }
+      }
+    });
+    this.socket$
+      .pipe(retry({count: 10, delay: 10000, resetOnSuccess: true}))
+      .subscribe({
+        next: this.onMessage.bind(this),
+        error: this.onError.bind(this),
+        complete: this.onComplete.bind(this)
+      })
+  }
+
+  public connect(url: string){
+    this.store.url = url;
+    console.log(url)
+    this._connectionUrl.next(url);
+    this.connectToWS();
+    
+  }
+
+  private connectToWS(){
+    this.socket$.unsubscribe();
+    this.socket$ = webSocket({
+      url: this.store.url,
       openObserver: {
         next: (val: any) => {
           console.log('opened :', val);

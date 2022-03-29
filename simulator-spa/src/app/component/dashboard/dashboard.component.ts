@@ -28,6 +28,7 @@ export class DashboardComponent implements OnInit {
   };
 
   public connectionState = false;
+  public connectionUrl = '';
 
   get connectionLabel(): string {
     return this.connectionState ? 'Connected' : 'Disconnected';
@@ -43,6 +44,10 @@ export class DashboardComponent implements OnInit {
     this.service.connection
       .pipe(takeUntil(this._unsubscribeAll))
       .subscribe((data: boolean) => this.connectionState = data)
+
+    this.service.connectionUrl
+      .pipe(takeUntil(this._unsubscribeAll))
+      .subscribe((url: string) => this.connectionUrl = url)
   }
 
   ngOnDestroy(): void {
@@ -83,6 +88,14 @@ export class DashboardComponent implements OnInit {
     else if (id === 'airTemperature') this.data.airTemperature = value;
     else if (id === 'carTemperature') this.data.carTemperature = value;
     this.service.setCarData(this.data)
+  }
+
+  public connectionChange(event: any): void {
+    this.connectionUrl = event.target.value as string;
+  }
+
+  public connect(): void {
+    this.service.connect(this.connectionUrl)
   }
 
 
