@@ -17,7 +17,7 @@ alt="raspcar" width="480" height="280" border="10" /></a>
 
 Ce projet contient plusieurs dossier : 
 
-- Le dossier app contient l'interface web interractive faite en React. 
+- Le dossier app contient l'interface web interactive faite en React. 
 
 Pour l'utiliser vous devrez faire un préalable npm i puis npm start. Les différents scripts sont dans le fichier package.json
 
