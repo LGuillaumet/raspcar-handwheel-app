@@ -5,7 +5,8 @@ import dbus
 import dbus.mainloop.glib
 import time
 
-
+#File not used, you can find the same code in the main file "serverFinalMerge.py"
+#Contains the code to answer a call and hangout the call
 def answer_call(path):
 	call = dbus.Interface(bus.get_object('org.ofono', path),
 						'org.ofono.VoiceCall')
