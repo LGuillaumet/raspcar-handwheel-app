@@ -8,54 +8,42 @@ Password : password
 Connecting with the command :
 `ssh pi@<ip-address>`
 
-### Preamble
+# Video 
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=Clhjr_MjwWE
+" target="_blank"><img src="https://i.ytimg.com/vi_webp/Clhjr_MjwWE/maxresdefault.webp" 
+alt="raspcar" width="480" height="280" border="10" /></a>
 
-It is important to notice that we cannot be running our application (for the embedded 5" wheel screen) on the same Raspberry Pi at the same time as the other services made for the dashboard screen since we have only one HDMI output.
+### Rapscar
 
-### Services
+Ce projet contient plusieurs dossier : 
 
-We have 3 daemons running at the boot of the Raspberry Pi that you can find in the folder `/etc/systemd/system`
+- Le dossier app contient l'interface web interractive faite en React. 
 
-#### raspcar_mediaplayer.service
+Pour l'utiliser vous devrez faire un préalable npm i puis npm start. Les différents scripts sont dans le fichier package.json
 
-This is the service that launches the back-end and front-end side of the app by invoking a script in the same folder at `/etc/systemd/system/raspcar.mediaplayer` that calls two other script inside the app folder `/home/pi/Documents/raspcar-handwheel-app-taoufik`:
-- server.py (that tracks the different signals on the dbus sent by the mobile phone via bluetooth to apply the corresponding changes on the user interface).
-- media_control.py (that tracks the incoming messages from the user interfaces to act upon the media player on the smartphone).
+Vous pouvez directement faire tourner le projet React sur votre ordinateur et préciser l'adresse ip du raspberry pi dans la variable ENDPOINT du fichier main.jsx pour vous connecter au serveur python.
 
-We have to think of the service as a two-way street, from the user interface towards the mobile device or from the mobile device towards the user interface with the raspberry pi in between.
+- Le dossier BTMediaControl qui va contenir le classe mediaPlayerBT.py et le fichier serverFinalMerge.py vous pouvez lancer le server avec python ou nodemon
+``` 
+nodemon serverFinalMerge.py
+```
+Le serveur fonctionne va communiquer avec nos différents services à l'aide de websockets.
 
-#### raspcar_aplay.service
+Pour installer les différentes dépendances python vous pouvez aller dans le fichier requierments et faire 
+```
+pip install -r requirements-dev
+ ```
 
-This is the service that permits the bluetooth stream of music to find its way to the speakers.
-It launches a simple script at `/etc/systemd/system/raspcar.aplay` containing the command : `bluealsa-aplay 00:00:00:00:00:00`.
+- Le dossier script va contenir plusieurs script pour lancer différents services. 
+  - Le fichier startup.sh lance l'intégralité du projet. Si vous ne pouvez pas le lancer il va falloir installer les dépendances manquantes avec pip install ou apt-get install. 
 
-#### nginx.service
+# Interface Simultor
 
-This is the service that launches the front-end server.
-You can find it at `/lib/systemd/system/nginx.service`.
-
-#### lightdm.service
-
-Finally we have made use of lightdm service to start a full screen web page at a given address.
-You can find it at `/lib/systemd/system/lightdm.service`.
-
-
-The address is held in a variable named $DASHBOARDPAGE under the file `/etc/environment` containing:
-
-DASHBOARDPAGE="http://localhost:80/"
-
-We use this variable in a bash file `~pi/.xsessionrc` that permits us to launch a web page in fullscreen when the Raspberry pi boots. 
-
-To restart the service you can launch the command:
-`sudo /etc/init.d/lightdm restart`
+- L'interface simulateur a été réalisée avec Angular. Comme pour React vous pouvez lancer le projet Angular avec npm.
+  - Vous aurez sûrement besoin d'angular cli https://angular.io/cli
 
 
-VERY IMPORTANT:
-We have been using the same files that were being used by the previous group for the dashboard web app only changing the port in the address, from 3000 to 80.
-Therefor to see the web page of their web app you will need to change the variable back to :
-DASHBOARDPAGE="http://localhost:3000/"
-
-# RUST SIMULATOR
+## RUST SIMULATOR
 
 ## Install virtual can 
 
@@ -88,4 +76,18 @@ sudo apt-get install can-utils
 
 - show live bus can : candump can1
 - send : cansend vcan_rx 00A#15
+
+
+# Ce qui n'a pas été fait :
+- Gestion du micro. 
+- Gestion du son.
+- Synchronisation bidirectionelle entre le smartphone et le rraspberrypi pour le lecteur de musique. (Quand l'utilisateur fait pause sur son smartphone, l'interface n'est pas mise à jour sur le React).
+- Connecter le simulateur physique.
+
+
+# Ce qui peut être amélioré : 
+- Les events du simulateur virtuel.
+- Le style des sliders (React).
+- Empêcher Swiper (Module utilisé dans React pour naviguer entre les menus) de changer de menu lors d'un input sur un bouton.
+- La gestion des threads python dans le fichier serverFinalMerge.py (Voir threadpool)
 
