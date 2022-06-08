@@ -37,7 +37,7 @@ pip install -r requirements-dev
 - Le dossier script va contenir plusieurs script pour lancer différents services. 
   - Le fichier startup.sh lance l'intégralité du projet. Si vous ne pouvez pas le lancer il va falloir installer les dépendances manquantes avec pip install ou apt-get install. 
 
-# Interface Simultor
+# Interface Simulator
 
 - L'interface simulateur a été réalisée avec Angular. Comme pour React vous pouvez lancer le projet Angular avec npm.
   - Vous aurez sûrement besoin d'angular cli https://angular.io/cli
